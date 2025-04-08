@@ -10,10 +10,10 @@ export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
+  // eslint-disable-next-line
   const handleSocialLogin = (provider: string) => {
     setIsLoading(true)
 
-    // Simulate social login - in a real app, this would redirect to the provider
     setTimeout(() => {
       setIsLoading(false)
       router.push("/")

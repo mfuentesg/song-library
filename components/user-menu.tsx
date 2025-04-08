@@ -25,7 +25,6 @@ export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
 
-  // Get initials from user name
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -35,13 +34,7 @@ export function UserMenu({ user }: UserMenuProps) {
   }
 
   const handleLogout = () => {
-    // In a real app, this would call an API to log the user out
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out."
-    })
-
-    // Redirect to login page
+    toast.success("You have been successfully logged out.")
     router.push("/login")
   }
 

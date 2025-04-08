@@ -99,9 +99,7 @@ export default function SongLibrary() {
   const createPlaylist = () => {
     if (newPlaylistName.trim() === "") return
     if (selectedSongs.length === 0) {
-      toast("No songs selected", {
-        description: "Please select at least one song for your playlist."
-      })
+      toast.warning("Please select at least one song for your playlist.")
       return
     }
 
@@ -118,9 +116,7 @@ export default function SongLibrary() {
     setNewPlaylistName("")
     setSelectedSongs([])
 
-    toast("Playlist created", {
-      description: `Your playlist "${newPlaylistName}" has been created successfully.`
-    })
+    toast.success(`Your playlist "${newPlaylistName}" has been created successfully.`)
   }
 
   // Remove song from playlist
@@ -143,26 +139,20 @@ export default function SongLibrary() {
     if (!playlist) return
 
     if (!playlist.isPublic) {
-      toast("Playlist is private", {
-        description: "Make the playlist public in settings before sharing."
-      })
+      toast.info("Make the playlist public in settings before sharing.")
       return
     }
 
     const shareLink = `${window.location.origin}/shared-playlist/${playlist.shareCode}`
     navigator.clipboard.writeText(shareLink)
 
-    toast("Share link copied", {
-      description: "The playlist share link has been copied to your clipboard."
-    })
+    toast.info("The playlist share link has been copied to your clipboard.")
   }
 
   // Add a new song
   const handleAddSong = () => {
     if (!newSong.name || !newSong.artist) {
-      toast("Missing information", {
-        description: "Please provide at least a song name and artist."
-      })
+      toast.warning("Please provide at least a song name and artist.")
       return
     }
 
@@ -178,9 +168,7 @@ export default function SongLibrary() {
     setNewSong({ name: "", artist: "", chord: "", bpm: "" })
     setIsAddDialogOpen(false)
 
-    toast("Song added", {
-      description: `"${newSong.name}" has been added to your library.`
-    })
+    toast.success(`"${newSong.name}" has been added to your library.`)
   }
 
   // Open playlist configuration

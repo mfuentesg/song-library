@@ -61,17 +61,13 @@ export function PlaylistConfigDialog({
       shareCode
     })
     onOpenChange(false)
-    toast("Playlist settings saved", {
-      description: "Your playlist settings have been updated successfully."
-    })
+    toast.success("Your playlist settings have been updated successfully.")
   }
 
   function copyShareLink() {
     const shareLink = `${window.location.origin}/shared-playlist/${shareCode}`
     navigator.clipboard.writeText(shareLink)
-    toast("Share link copied", {
-      description: "The playlist share link has been copied to your clipboard."
-    })
+    toast.info("The playlist share link has been copied to your clipboard.")
   }
 
   return (
