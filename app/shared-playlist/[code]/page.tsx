@@ -7,7 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { GripVertical, ArrowLeft, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { draggable, dropTargetForElements, monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter"
+import {
+  draggable,
+  dropTargetForElements,
+  monitorForElements
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter"
 
 // Sample data - in a real app, this would come from a database
 const sampleSongs = [
@@ -18,7 +22,7 @@ const sampleSongs = [
   { id: "5", name: "Wish You Were Here", artist: "Pink Floyd", chord: "G", bpm: 66 },
   { id: "6", name: "Stairway to Heaven", artist: "Led Zeppelin", chord: "Am", bpm: 82 },
   { id: "7", name: "Sweet Home Alabama", artist: "Lynyrd Skynyrd", chord: "D", bpm: 98 },
-  { id: "8", name: "Smells Like Teen Spirit", artist: "Nirvana", chord: "F", bpm: 116 },
+  { id: "8", name: "Smells Like Teen Spirit", artist: "Nirvana", chord: "F", bpm: 116 }
 ]
 
 const samplePlaylists = [
@@ -28,7 +32,7 @@ const samplePlaylists = [
     songs: ["1", "4", "5"],
     isPublic: true,
     allowGuestEditing: true,
-    shareCode: "ACST1234",
+    shareCode: "ACST1234"
   },
   {
     id: "playlist-2",
@@ -36,8 +40,8 @@ const samplePlaylists = [
     songs: ["3", "6", "8"],
     isPublic: false,
     allowGuestEditing: false,
-    shareCode: "ROCK5678",
-  },
+    shareCode: "ROCK5678"
+  }
 ]
 
 export default function SharedPlaylistPage() {
@@ -99,8 +103,14 @@ export default function SharedPlaylistPage() {
         playlistElement.classList.remove("border-primary", "border-2")
       },
       onDrop: () => {
-        playlistElement.classList.remove("bg-accent/50", "p-2", "rounded-md", "border-primary", "border-2")
-      },
+        playlistElement.classList.remove(
+          "bg-accent/50",
+          "p-2",
+          "rounded-md",
+          "border-primary",
+          "border-2"
+        )
+      }
     })
 
     // Setup monitor for reordering
@@ -124,11 +134,11 @@ export default function SharedPlaylistPage() {
             // In a real app, you would save this change to the server
             console.log(
               "Guest reordered songs:",
-              newSongs.map((s) => s.id),
+              newSongs.map((s) => s.id)
             )
           }
         }
-      },
+      }
     })
 
     return () => {
@@ -143,17 +153,17 @@ export default function SharedPlaylistPage() {
 
     return draggable({
       element,
-      getData: () => ({
+      getInitialData: () => ({
         type: "playlist-item",
         songId,
-        index: index.toString(),
+        index: index.toString()
       }),
       onDragStart: () => {
         element.classList.add("opacity-50")
       },
       onDrop: () => {
         element.classList.remove("opacity-50")
-      },
+      }
     })
   }
 
@@ -200,7 +210,9 @@ export default function SharedPlaylistPage() {
           </div>
 
           {playlist?.allowGuestEditing && (
-            <Badge className="bg-blue-50 text-blue-700 border-blue-200">You can reorder songs</Badge>
+            <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+              You can reorder songs
+            </Badge>
           )}
         </div>
       </div>
