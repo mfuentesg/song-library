@@ -10,18 +10,14 @@ export function Header() {
   const pathname = usePathname()
   const [user, setUser] = useState<{ name: string; email: string } | null>(null)
 
-  // Simulate user authentication check
   useEffect(() => {
-    // In a real app, this would check if the user is logged in
-    // For demo purposes, we'll just set a mock user after a delay
     const isLoginPage = pathname === "/login"
 
     if (!isLoginPage) {
-      // Simulate fetching user data
       const timer = setTimeout(() => {
         setUser({
           name: "John Doe",
-          email: "john.doe@example.com",
+          email: "john.doe@example.com"
         })
       }, 500)
 

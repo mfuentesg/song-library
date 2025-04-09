@@ -13,7 +13,6 @@ import {
   monitorForElements
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter"
 
-// Sample data - in a real app, this would come from a database
 const sampleSongs = [
   { id: "1", name: "Wonderwall", artist: "Oasis", chord: "Am", bpm: 87 },
   { id: "2", name: "Hallelujah", artist: "Leonard Cohen", chord: "C", bpm: 72 },
@@ -54,11 +53,9 @@ export default function SharedPlaylistPage() {
   const playlistRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Simulate fetching playlist data
     const fetchPlaylist = () => {
       setLoading(true)
 
-      // In a real app, this would be an API call
       setTimeout(() => {
         const foundPlaylist = samplePlaylists.find((p) => p.shareCode === shareCode)
 
@@ -70,7 +67,6 @@ export default function SharedPlaylistPage() {
 
         setPlaylist(foundPlaylist)
 
-        // Get the songs in the playlist
         const playlistSongs = foundPlaylist.songs
           .map((songId) => sampleSongs.find((s) => s.id === songId))
           .filter((song) => song !== undefined) as typeof sampleSongs
@@ -83,7 +79,6 @@ export default function SharedPlaylistPage() {
     fetchPlaylist()
   }, [shareCode])
 
-  // Setup drag and drop for the playlist
   useEffect(() => {
     if (!playlistRef.current || !playlist?.allowGuestEditing) return
 
