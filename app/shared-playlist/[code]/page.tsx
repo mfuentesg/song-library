@@ -4,14 +4,9 @@ import { useState, useEffect, useRef } from "react"
 import { useParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { GripVertical, ArrowLeft, Clock } from "lucide-react"
+import { GripVerticalIcon, ArrowLeft, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import {
-  draggable,
-  dropTargetForElements,
-  monitorForElements
-} from "@atlaskit/pragmatic-drag-and-drop/element/adapter"
 
 const sampleSongs = [
   { id: "1", name: "Wonderwall", artist: "Oasis", chord: "Am", bpm: 87 },
@@ -79,89 +74,7 @@ export default function SharedPlaylistPage() {
     fetchPlaylist()
   }, [shareCode])
 
-  useEffect(() => {
-    if (!playlistRef.current || !playlist?.allowGuestEditing) return
-
-    const playlistElement = playlistRef.current
-
-    // Setup drop target for the playlist
-    const dropTargetCleanup = dropTargetForElements({
-      element: playlistElement,
-      getData: () => ({ type: `shared-playlist` }),
-      onDragStart: () => {
-        playlistElement.classList.add("bg-accent/50", "p-2", "rounded-md")
-      },
-      onDragEnter: () => {
-        playlistElement.classList.add("border-primary", "border-2")
-      },
-      onDragLeave: () => {
-        playlistElement.classList.remove("border-primary", "border-2")
-      },
-      onDrop: () => {
-        playlistElement.classList.remove(
-          "bg-accent/50",
-          "p-2",
-          "rounded-md",
-          "border-primary",
-          "border-2"
-        )
-      }
-    })
-
-    // Setup monitor for reordering
-    const monitorCleanup = monitorForElements({
-      onDrop({ source, location }) {
-        if (source.data.type === "playlist-item" && location.current.dropTargets.length > 0) {
-          const targetId = location.current.dropTargets[0].data.type
-
-          if (targetId === "shared-playlist") {
-            const sourceIndex = Number.parseInt(source.data.index as string)
-            const targetIndex = location.current.dropTargets[0].data.index
-              ? Number.parseInt(location.current.dropTargets[0].data.index as string)
-              : songs.length - 1
-
-            // Reorder songs
-            const newSongs = [...songs]
-            const [removed] = newSongs.splice(sourceIndex, 1)
-            newSongs.splice(targetIndex, 0, removed)
-            setSongs(newSongs)
-
-            // In a real app, you would save this change to the server
-            console.log(
-              "Guest reordered songs:",
-              newSongs.map((s) => s.id)
-            )
-          }
-        }
-      }
-    })
-
-    return () => {
-      dropTargetCleanup()
-      monitorCleanup()
-    }
-  }, [playlist, songs])
-
   // Setup draggable for a playlist item
-  const setupPlaylistItemDraggable = (element: HTMLElement, songId: string, index: number) => {
-    if (!playlist?.allowGuestEditing) return
-
-    return draggable({
-      element,
-      getInitialData: () => ({
-        type: "playlist-item",
-        songId,
-        index: index.toString()
-      }),
-      onDragStart: () => {
-        element.classList.add("opacity-50")
-      },
-      onDrop: () => {
-        element.classList.remove("opacity-50")
-      }
-    })
-  }
-
   if (loading) {
     return (
       <div className="container mx-auto py-8 px-4 flex flex-col items-center justify-center min-h-[50vh]">
@@ -216,19 +129,12 @@ export default function SharedPlaylistPage() {
         {songs.length === 0 ? (
           <p className="text-center py-8 text-muted-foreground">This playlist is empty.</p>
         ) : (
-          songs.map((song, index) => (
-            <Card
-              key={song.id}
-              ref={(element) => {
-                if (element && playlist?.allowGuestEditing) {
-                  setupPlaylistItemDraggable(element, song.id, index)
-                }
-              }}
-            >
+          songs.map((song) => (
+            <Card key={song.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {playlist?.allowGuestEditing && (
-                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                    <GripVerticalIcon className="h-5 w-5 text-muted-foreground cursor-move" />
                   )}
                   <div>
                     <h3 className="font-medium">{song.name}</h3>

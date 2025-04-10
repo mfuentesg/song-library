@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { PlaylistConfigDialog } from "@/components/playlist-config-dialog"
-import { Globe, Lock, Share2, Settings, X, GripVertical, Clock } from "lucide-react"
+import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
+import { Song } from "./song"
 
 type playlist = {
   id: string
@@ -45,93 +46,124 @@ export default function Playlist({ playlist }: { playlist: playlist }) {
     toast.info("The playlist share link has been copied to your clipboard.")
   }
 
-  const removeSongFromPlaylist = (songId: string) => {
-    toast.info(`should remove "${songId}" from playlist`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDragEnd = (result: any) => {
+    const { destination, source } = result
+
+    // If dropped outside a droppable area
+    if (!destination) {
+      return
+    }
+
+    // If dropped in the same position
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+      return
+    }
+
+    // Handle reordering within a playlist
+    if (destination.droppableId === source.droppableId) {
+      // const playlistId = destination.droppableId
+      const newSongs = Array.from(playlist.songs)
+      const [removed] = newSongs.splice(source.index, 1)
+      newSongs.splice(destination.index, 0, removed)
+
+      // setPlaylists(playlists.map((p) => (p.id === playlistId ? { ...p, songs: newSongs } : p)))
+      toast.info("Playlist reordered")
+    }
   }
 
   return (
-    <div key={playlist.id} className="space-y-2 p-4 rounded-md bg-muted">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-          <h3 className="text-lg font-semibold">{playlist.name}</h3>
-          <div className="flex gap-2 justify-center items-center">
-            {playlist.isPublic ? (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                <Globe className="mr-1 h-3 w-3" /> Public
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                <Lock className="mr-1 h-3 w-3" /> Private
-              </Badge>
-            )}
-            {playlist.allowGuestEditing && (
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Guest Editing
-              </Badge>
-            )}
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div key={playlist.id} className="space-y-2 p-4 rounded-md bg-muted">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+            <h3 className="text-lg font-semibold">{playlist.name}</h3>
+            <div className="flex gap-2 justify-center items-center">
+              {playlist.isPublic ? (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <GlobeIcon className="mr-1 h-3 w-3" /> Public
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  <LockIcon className="mr-1 h-3 w-3" /> Private
+                </Badge>
+              )}
+              {playlist.allowGuestEditing && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Guest Editing
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 ">
+            <Button variant="outline" size="sm" onClick={openPlaylistConfig}>
+              <SettingsIcon className="h-4 w-4" />{" "}
+              <span className="sr-only sm:not-sr-only">Settings</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={sharePlaylist}>
+              <Share2Icon className="h-4 w-4" />{" "}
+              <span className="sr-only sm:not-sr-only">Share</span>
+            </Button>
           </div>
         </div>
-        <div className="flex gap-2 ">
-          <Button variant="outline" size="sm" onClick={openPlaylistConfig}>
-            <Settings className="h-4 w-4" />{" "}
-            <span className="sr-only sm:not-sr-only">Settings</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={sharePlaylist}>
-            <Share2 className="h-4 w-4" /> <span className="sr-only sm:not-sr-only">Share</span>
-          </Button>
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        {playlist.songs.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic p-4">
-            This playlist is empty. Add songs from the library.
-          </p>
-        ) : (
-          playlist.songs.map((songId) => {
-            const song = initialSongs.find((s) => s.id === songId)
-            if (!song) return null
-
-            return (
-              <Card key={`${playlist.id}-${songId}`}>
-                <CardContent className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                    <div>
-                      <h3 className="font-medium">{song.name}</h3>
-                      <p className="text-sm text-muted-foreground">{song.artist}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant="outline" className="ml-2">
-                        {song.chord}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="bg-purple-50 text-purple-700 border-purple-200 flex items-center"
-                      >
-                        <Clock className="mr-1 h-3 w-3" /> {song.bpm} BPM
-                      </Badge>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeSongFromPlaylist(songId)}
+        <div className="space-y-2">
+          {playlist.songs.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic p-4">
+              This playlist is empty. Add songs from the library.
+            </p>
+          ) : (
+            <div key={playlist.id} className="space-y-2">
+              <Droppable droppableId={playlist.id}>
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={`space-y-2 rounded-md p-1 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            )
-          })
-        )}
+                    {playlist.songs.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic p-4">
+                        This playlist is empty. Add songs from the library.
+                      </p>
+                    ) : (
+                      playlist.songs.map((songId, index) => {
+                        const song = initialSongs.find((s) => s.id === songId)
+                        if (!song) return null
+
+                        return (
+                          <Draggable key={songId} draggableId={songId} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div {...provided.dragHandleProps}>
+                                    <GripVerticalIcon className="h-5 w-5 text-muted-foreground cursor-move" />
+                                  </div>
+                                  <Song song={song} classNames="w-full" />
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        )
+                      })
+                    )}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          )}
+        </div>
+        <PlaylistConfigDialog
+          playlist={playlist}
+          open={isConfigOpen}
+          onOpenChange={setIsConfigOpen}
+          onSave={() => toast.info("to save playlist settings")}
+        />
       </div>
-      <PlaylistConfigDialog
-        playlist={playlist}
-        open={isConfigOpen}
-        onOpenChange={setIsConfigOpen}
-        onSave={() => toast.info("to save playlist settings")}
-      />
-    </div>
+    </DragDropContext>
   )
 }
