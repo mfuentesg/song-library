@@ -119,7 +119,7 @@ export default function Playlist({ playlist }: { playlist: playlist }) {
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className={`space-y-2 rounded-md p-1 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
+                    className={`space-y-2 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
                   >
                     {playlist.songs.length === 0 ? (
                       <p className="text-sm text-muted-foreground italic p-4">
@@ -138,11 +138,16 @@ export default function Playlist({ playlist }: { playlist: playlist }) {
                                 {...provided.draggableProps}
                                 className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div {...provided.dragHandleProps}>
-                                    <GripVerticalIcon className="h-5 w-5 text-muted-foreground cursor-move" />
-                                  </div>
-                                  <Song song={song} classNames="w-full" />
+                                <div
+                                  className="flex items-center gap-3 relative"
+                                  {...provided.dragHandleProps}
+                                >
+                                  <Song
+                                    song={song}
+                                    className="w-full"
+                                    {...provided.dragHandleProps}
+                                  />
+                                  <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
                                 </div>
                               </div>
                             )}

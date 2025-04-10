@@ -15,15 +15,15 @@ export type song = {
 
 export function Song({
   song,
-  classNames,
+  className,
   ref
 }: {
   song: song
-  classNames?: ClassValue
+  className?: ClassValue
   ref?: Ref<HTMLDivElement> | undefined
 }) {
   return (
-    <Card className={cn(classNames)} ref={ref}>
+    <Card className={cn(className)} ref={ref}>
       <CardContent className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div>
