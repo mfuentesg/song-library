@@ -23,17 +23,15 @@ export function Song({
   ref?: Ref<HTMLDivElement> | undefined
 }) {
   return (
-    <Card className={cn(className)} ref={ref}>
-      <CardContent className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <Card className={cn(className, "p-3")} ref={ref}>
+      <CardContent className="flex items-center justify-between px-3">
+        <div className="flex flex-col gap-3">
           <div>
             <h3 className="font-medium">{song.name}</h3>
             <p className="text-sm text-muted-foreground">{song.artist}</p>
           </div>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="ml-2">
-              {song.chord}
-            </Badge>
+          <div className="flex items-start gap-2">
+            <Badge variant="outline">{song.chord}</Badge>
             <Badge
               variant="outline"
               className="bg-purple-50 text-purple-700 border-purple-200 flex items-center"
