@@ -23,8 +23,8 @@ export function Song({
   ref?: Ref<HTMLDivElement> | undefined
 }) {
   return (
-    <Card className={cn(className, "p-3")} ref={ref}>
-      <CardContent className="flex items-center justify-between px-3">
+    <Card className={cn(className, "border-2 p-4")} ref={ref}>
+      <CardContent className="flex items-center justify-between px-0">
         <div className="flex flex-col gap-3">
           <div>
             <h3 className="font-medium">{song.name}</h3>

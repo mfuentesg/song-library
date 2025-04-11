@@ -1,11 +1,20 @@
 import React, { useState } from "react"
-import { Music, Clock, Search } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Search, ListPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Song } from "@/components/song"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 const initialSongs = [
   { id: "1", name: "Wonderwall", artist: "Oasis", chord: "Am", bpm: 87 },
@@ -22,11 +31,16 @@ export default function SongList() {
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
   const [newPlaylistName, setNewPlaylistName] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false)
 
   const toggleSongSelection = (songId: string) => {
     setSelectedSongs((prev) =>
       prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]
     )
+  }
+
+  const clearSelection = () => {
+    setSelectedSongs([])
   }
 
   const createPlaylist = () => {
@@ -67,57 +81,128 @@ export default function SongList() {
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Song Library</h2>
-        {selectedSongs.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="New playlist name"
-              value={newPlaylistName}
-              onChange={(e) => setNewPlaylistName(e.target.value)}
-              className="max-w-[200px]"
-            />
-            <Button onClick={createPlaylist} size="sm">
-              Create Playlist
-            </Button>
-          </div>
-        )}
-      </div>
+      <h2 className="text-xl font-semibold mt-6">Song Library</h2>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {filteredSongs.map((song) => (
-          <Card
-            key={song.id}
-            className={`transition-colors ${selectedSongs.includes(song.id) ? "border-primary bg-primary/5" : ""}`}
-          >
-            <CardContent className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Music className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <h3 className="font-medium">{song.name}</h3>
-                  <p className="text-sm text-muted-foreground">{song.artist}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Badge variant="outline" className="ml-2">
-                    {song.chord}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 border-purple-200 flex items-center"
-                  >
-                    <Clock className="mr-1 h-3 w-3" /> {song.bpm} BPM
-                  </Badge>
-                </div>
-              </div>
-              <Checkbox
-                onCheckedChange={() => {
-                  toggleSongSelection(song.id)
-                }}
-              />
-            </CardContent>
-          </Card>
+          <div className="relative" key={song.id}>
+            <Song
+              song={song}
+              className={cn({
+                "bg-purple-50": selectedSongs.includes(song.id),
+                "border-2": selectedSongs.includes(song.id),
+                "border-purple-200": selectedSongs.includes(song.id)
+              })}
+            />
+            <Checkbox
+              className="absolute right-4 top-4"
+              checked={selectedSongs.includes(song.id)}
+              onCheckedChange={() => {
+                toggleSongSelection(song.id)
+              }}
+            />
+          </div>
         ))}
       </div>
+
+      {/* {selectedSongs.length > 0 && (
+        <div className="fixed bottom-6 right-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 z-10 animate-in fade-in slide-in-from-bottom-5 max-w-sm w-[90%] border border-border">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-purple-500 text-white border-purple-600">
+                  {selectedSongs.length} song{selectedSongs.length !== 1 ? "s" : ""}
+                </Badge>
+                <span className="text-sm text-muted-foreground">selected</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearSelection}
+                className="h-7 w-7 rounded-full hover:bg-muted"
+              >
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only">Clear selection</span>
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="New playlist name"
+                value={newPlaylistName}
+                onChange={(e) => setNewPlaylistName(e.target.value)}
+                className="h-9 text-md"
+              />
+              <Button
+                onClick={createPlaylist}
+                className="whitespace-nowrap"
+                disabled={!newPlaylistName.trim()}
+              >
+                Create
+              </Button>
+            </div>
+          </div>
+        </div>
+      )} */}
+      {selectedSongs.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 animate-in fade-in slide-in-from-bottom-5">
+          <div className="flex items-center bg-background border border-border rounded-full shadow-md py-2 px-4 gap-3">
+            <Badge variant="secondary" className="rounded-full px-3 py-0.5">
+              {selectedSongs.length}
+            </Badge>
+
+            <Dialog open={isCreatePlaylistOpen} onOpenChange={setIsCreatePlaylistOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <ListPlus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Create Playlist</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create Playlist</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="playlist-name">Playlist Name</Label>
+                    <Input
+                      id="playlist-name"
+                      value={newPlaylistName}
+                      onChange={(e) => setNewPlaylistName(e.target.value)}
+                      placeholder="Enter playlist name"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Creating a playlist with {selectedSongs.length} selected song
+                      {selectedSongs.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsCreatePlaylistOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={createPlaylist} disabled={!newPlaylistName.trim()}>
+                    Create Playlist
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <div className="h-5 w-px bg-border mx-1"></div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
     </React.Fragment>
   )
 }
