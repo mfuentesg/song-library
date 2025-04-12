@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -20,17 +20,25 @@ import SongList from "./song-list"
 export default function SongLibrary() {
   const playlists = [
     {
-      id: "playlist-1",
-      name: "Acoustic Set",
-      songs: ["1", "4", "5"],
+      id: "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
+      name: "Culto Domingo",
+      songs: [
+        "d2df3f40-8e27-4e30-9e6d-099b7c7ad816",
+        "288a1e8d-8d81-46e0-821c-0e7a13654519",
+        "617a4104-db57-4db9-8533-bc6d256ddc8f"
+      ],
       isPublic: true,
       allowGuestEditing: true,
       shareCode: "ACST1234"
     },
     {
-      id: "playlist-2",
-      name: "Rock Classics",
-      songs: ["3", "6", "8"],
+      id: "u3v4w5x6-y7z8-a9b0-c1d2-e3f4g5h6i7j8",
+      name: "Culto Domingo 19",
+      songs: [
+        "c2fa5cb4-b5ee-4b7b-b6d5-3324c528d953",
+        "6cccc782-1244-4667-b8d3-dfef0556caa1",
+        "0a5e2535-8fbd-4972-8086-ed69bf9b53e6"
+      ],
       isPublic: false,
       allowGuestEditing: false
     }
@@ -64,7 +72,7 @@ export default function SongLibrary() {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="whitespace-nowrap">
-              <Plus className="mr-2 h-4 w-4" /> Add Song
+              <PlusIcon className="mr-2 h-4 w-4" /> Add Song
             </Button>
           </DialogTrigger>
           <DialogContent>

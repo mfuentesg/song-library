@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
-import { Globe, Lock, Copy } from "lucide-react"
+import { GlobeIcon, LockIcon, CopyIcon } from "lucide-react"
 
 interface PlaylistConfigDialogProps {
   playlist: {
@@ -92,12 +92,12 @@ export function PlaylistConfigDialog({
                 <div className="text-sm text-muted-foreground">
                   {isPublic ? (
                     <div className="flex items-center text-green-600">
-                      <Globe className="mr-1 h-3 w-3" />
+                      <GlobeIcon className="mr-1 h-3 w-3" />
                       <span>Anyone with the link can view</span>
                     </div>
                   ) : (
                     <div className="flex items-center text-amber-600">
-                      <Lock className="mr-1 h-3 w-3" />
+                      <LockIcon className="mr-1 h-3 w-3" />
                       <span>Only you can view</span>
                     </div>
                   )}
@@ -132,7 +132,7 @@ export function PlaylistConfigDialog({
               <div className="flex items-center gap-2">
                 <Input value={shareCode} readOnly className="font-mono" />
                 <Button variant="outline" size="icon" onClick={copyShareLink}>
-                  <Copy className="h-4 w-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">

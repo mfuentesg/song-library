@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock } from "lucide-react"
+import { ClockIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ClassValue } from "clsx"
 import { Ref } from "react"
@@ -36,7 +36,7 @@ export function Song({
               variant="outline"
               className="bg-purple-50 text-purple-700 border-purple-200 flex items-center"
             >
-              <Clock className="mr-1 h-3 w-3" /> {song.bpm} BPM
+              <ClockIcon className="mr-1 h-3 w-3" /> {song.bpm} BPM
             </Badge>
           </div>
         </div>

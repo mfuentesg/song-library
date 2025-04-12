@@ -16,8 +16,8 @@ export function Header() {
     if (!isLoginPage) {
       const timer = setTimeout(() => {
         setUser({
-          name: "John Doe",
-          email: "john.doe@example.com"
+          name: "Marcelo Fuentes",
+          email: "marceloe.fuentes@gmail.com"
         })
       }, 500)
 
