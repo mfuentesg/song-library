@@ -353,7 +353,7 @@ export default function SongList() {
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1.5">
                   <ListMusicIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Create Playlist</span>
+                  <span>Create Playlist</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
