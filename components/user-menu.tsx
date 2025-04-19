@@ -13,15 +13,17 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogOutIcon } from "lucide-react"
 import { toast } from "sonner"
+import { AvatarImage } from "@radix-ui/react-avatar"
+import { createClient } from "@/lib/supabase/client"
 
-interface UserMenuProps {
-  user: {
-    name: string
-    email: string
-  } | null
+export type AuthUser = {
+  id: string
+  email: string
+  name: string
+  avatar_url?: string
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user }: { user: AuthUser }) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -33,13 +35,16 @@ export function UserMenu({ user }: UserMenuProps) {
       .toUpperCase()
   }
 
-  const handleLogout = () => {
-    toast.success("You have been successfully logged out.")
-    router.push("/login")
-  }
-
-  if (!user) {
-    return null
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient()
+      supabase.auth.signOut()
+      toast.success("You have been successfully logged out.")
+      router.push("/login")
+    } catch (error) {
+      console.log("Logout error:", error)
+      toast.error("There was a problem signing out.")
+    }
   }
 
   return (
@@ -47,6 +52,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
           <Avatar className="h-8 w-8 cursor-pointer border border-primary/20">
+            <AvatarImage src={user.avatar_url} alt={user.name} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {getInitials(user.name)}
             </AvatarFallback>

@@ -1,31 +1,13 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { UserMenu } from "@/components/user-menu"
+import { createClient } from "@/lib/supabase/server"
 
-export function Header() {
-  const pathname = usePathname()
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
-
-  useEffect(() => {
-    const isLoginPage = pathname === "/login"
-
-    if (!isLoginPage) {
-      const timer = setTimeout(() => {
-        setUser({
-          name: "Marcelo Fuentes",
-          email: "marceloe.fuentes@gmail.com"
-        })
-      }, 500)
-
-      return () => clearTimeout(timer)
-    } else {
-      setUser(null)
-    }
-  }, [pathname])
+export async function Header() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error
+  } = await supabase.auth.getUser()
 
   return (
     <header className="border-b bg-background">
@@ -34,19 +16,13 @@ export function Header() {
           <span className="text-xl font-bold">Song Library</span>
         </Link>
 
-        <div className="flex items-center space-x-4">
-          {user ? (
+        {!error && (
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <UserMenu user={user} />
+              <UserMenu user={user?.user_metadata} />
             </div>
-          ) : (
-            pathname !== "/login" && (
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-            )
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>
   )
