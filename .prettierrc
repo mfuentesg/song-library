@@ -6,13 +6,5 @@
   "trailingComma": "none",
   "bracketSpacing": true,
   "semi": false,
-  "useTabs": false,
-  "rules": {
-    "no-console": "off",
-    "no-unused-vars": "warn",
-    "no-undef": "error",
-    "no-extra-semi": "error",
-    "quotes": ["error", "double"],
-    "indent": ["error", 2]
-  }
+  "useTabs": false
 }
