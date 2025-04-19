@@ -40,7 +40,7 @@ export function UserMenu({ user }: { user: AuthUser }) {
       const supabase = createClient()
       supabase.auth.signOut()
       toast.success("You have been successfully logged out.")
-      router.push("/login")
+      router.push("/")
     } catch (error) {
       console.log("Logout error:", error)
       toast.error("There was a problem signing out.")
