@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { UserMenu } from "@/components/user-menu"
+import { UserMenu, type AuthUser } from "@/components/user-menu"
 import { createClient } from "@/lib/supabase/server"
 
 export async function Header() {
@@ -19,7 +19,7 @@ export async function Header() {
         {!error && (
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <UserMenu user={user?.user_metadata} />
+              <UserMenu user={user?.user_metadata as AuthUser} />
             </div>
           </div>
         )}
