@@ -1,7 +1,3 @@
-"use client"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +7,12 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { LogOutIcon } from "lucide-react"
-import { toast } from "sonner"
 import { AvatarImage } from "@radix-ui/react-avatar"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
+import { revalidatePath } from "next/cache"
+import { redirect, RedirectType } from "next/navigation"
 
 export type AuthUser = {
   id: string
@@ -24,37 +22,23 @@ export type AuthUser = {
 }
 
 export function UserMenu({ user }: { user: AuthUser }) {
-  const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
-
   const handleLogout = async () => {
-    try {
-      const supabase = createClient()
-      supabase.auth.signOut()
-      toast.success("You have been successfully logged out.")
-      router.push("/")
-    } catch (error) {
-      console.log("Logout error:", error)
-      toast.error("There was a problem signing out.")
-    }
+    "use server"
+
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    revalidatePath("/", "layout")
+    redirect("/", RedirectType.push)
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+        <button className="flex items-center gap-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
           <Avatar className="h-8 w-8 cursor-pointer border border-primary/20">
             <AvatarImage src={user.avatar_url} alt={user.name} />
             <AvatarFallback className="bg-primary/10 text-primary">
-              {getInitials(user.name)}
+              {user.name[0].toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span className="hidden text-sm font-medium md:inline-block">{user.name}</span>
@@ -68,9 +52,13 @@ export function UserMenu({ user }: { user: AuthUser }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+        <DropdownMenuItem asChild className="p-0">
+          <form action={handleLogout} className="block p-0">
+            <Button variant="ghost" className="py-0 w-full justify-start">
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </Button>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
