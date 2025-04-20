@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css"
 
+export const runtime = "edge"
+
 const lato = Lato({
   subsets: ["latin"],
   weight: ["300", "400", "700"],
