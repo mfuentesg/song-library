@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen-types": "supabase gen types typescript --local > database.types.ts"
+    "gen-types": "supabase gen types typescript --local > database.types.ts",
+    "postinstall": "husky install",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -43,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^10.1.1",
+    "husky": "^9.1.7",
     "prettier": "^3.5.3",
     "supabase": "^2.20.12",
     "tailwindcss": "^4.1.3",
