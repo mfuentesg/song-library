@@ -6,16 +6,6 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  validate-migrations:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      - run: supabase db lint
-      - run: supabase db start
-
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -29,4 +19,5 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref $SUPABASE_PROJECT_ID
+      - run: supabase db lint
       - run: supabase db push
