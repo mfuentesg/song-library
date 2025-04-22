@@ -35,13 +35,13 @@ export function UserMenu({ user }: { user: AuthUser }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+          <span className="hidden text-sm font-medium md:inline-block">{user.name}</span>
           <Avatar className="h-8 w-8 cursor-pointer border border-primary/20">
             <AvatarImage src={user.avatar_url} alt={user.name} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {user.name[0].toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden text-sm font-medium md:inline-block">{user.name}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
