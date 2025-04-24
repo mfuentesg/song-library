@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Lato } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Header } from "@/components/header"
 import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css"
@@ -30,10 +29,7 @@ export default function RootLayout({
     <html lang="en" className={`${lato.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
+          {children}
         </ThemeProvider>
         <Toaster />
       </body>

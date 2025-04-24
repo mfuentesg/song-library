@@ -356,7 +356,7 @@ export default function SongList() {
                   <span>Create Playlist</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px]" aria-describedby="create a new playlist">
                 <DialogHeader>
                   <DialogTitle>Create Playlist</DialogTitle>
                 </DialogHeader>

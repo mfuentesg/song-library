@@ -1,3 +1,5 @@
+"use client"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,12 +9,9 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { LogOutIcon } from "lucide-react"
 import { AvatarImage } from "@radix-ui/react-avatar"
-import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
-import { redirect, RedirectType } from "next/navigation"
+import { handleLogout } from "./actions"
 
 export type AuthUser = {
   id: string
@@ -22,15 +21,6 @@ export type AuthUser = {
 }
 
 export function UserMenu({ user }: { user: AuthUser }) {
-  const handleLogout = async () => {
-    "use server"
-
-    const supabase = await createClient()
-    await supabase.auth.signOut()
-    revalidatePath("/", "layout")
-    redirect("/", RedirectType.push)
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -52,13 +42,9 @@ export function UserMenu({ user }: { user: AuthUser }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="p-0">
-          <form action={handleLogout} className="block p-0">
-            <Button variant="ghost" className="py-0 w-full justify-start">
-              <LogOutIcon className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </Button>
-          </form>
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOutIcon className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

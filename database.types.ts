@@ -40,21 +40,18 @@ export type Database = {
           playlist_id: string
           position: number
           song_id: string
-          updated_at: string | null
         }
         Insert: {
           created_at?: string
           playlist_id?: string
           position?: number
           song_id?: string
-          updated_at?: string | null
         }
         Update: {
           created_at?: string
           playlist_id?: string
           position?: number
           song_id?: string
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -76,29 +73,29 @@ export type Database = {
       playlists: {
         Row: {
           allow_guest_editing: boolean
-          created_at: string
+          created_at: string | null
           id: string
           is_public: boolean
           name: string
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           allow_guest_editing?: boolean
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_public?: boolean
           name?: string
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Update: {
           allow_guest_editing?: boolean
-          created_at?: string
+          created_at?: string | null
           id?: string
           is_public?: boolean
           name?: string
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -108,30 +105,30 @@ export type Database = {
           artist: string
           bpm: number
           chord: string
-          created_at: string
+          created_at: string | null
           id: string
           title: string | null
-          updated_at: string
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
           artist: string
           bpm?: number
           chord: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           title?: string | null
-          updated_at: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           artist?: string
           bpm?: number
           chord?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           title?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []

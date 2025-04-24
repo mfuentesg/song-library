@@ -72,7 +72,7 @@ export function PlaylistConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="playlist settings">
         <DialogHeader>
           <DialogTitle>Playlist Settings</DialogTitle>
           <DialogDescription>

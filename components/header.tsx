@@ -1,13 +1,12 @@
+"use client"
+
+import { useContext } from "react"
 import Link from "next/link"
 import { UserMenu, type AuthUser } from "@/components/user-menu"
-import { createClient } from "@/lib/supabase/server"
+import { UserContext } from "@/context/auth"
 
-export async function Header() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser()
+export function Header() {
+  const user = useContext(UserContext)
 
   return (
     <header className="border-b bg-background">
@@ -16,13 +15,11 @@ export async function Header() {
           <span className="text-xl font-bold">Song Library</span>
         </Link>
 
-        {!error && (
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <UserMenu user={user?.user_metadata as AuthUser} />
-            </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            {user && <UserMenu user={user?.user_metadata as AuthUser} />}
           </div>
-        )}
+        </div>
       </div>
     </header>
   )
