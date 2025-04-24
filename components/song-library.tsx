@@ -42,21 +42,24 @@ export default function SongLibrary() {
     }
   ]
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const toggleDialog = () => {
+    setIsAddDialogOpen((prev) => !prev)
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-end">
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={toggleDialog}>
           <DialogTrigger asChild>
             <Button className="whitespace-nowrap">
               <PlusIcon className="mr-2 h-4 w-4" /> Add Song
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent aria-describedby="create a new song">
             <DialogHeader>
               <DialogTitle>Add New Song</DialogTitle>
             </DialogHeader>
-            <SongForm />
+            <SongForm onSubmit={toggleDialog} />
           </DialogContent>
         </Dialog>
       </div>

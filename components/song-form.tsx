@@ -1,76 +1,127 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useContext } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import {
+  Form,
+  FormField,
+  FormLabel,
+  FormItem,
+  FormControl,
+  FormMessage
+} from "@/components/ui/form"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ChordSelect, type Key } from "./chord-select"
+import { createClient } from "@/lib/supabase/client"
+import { UserContext } from "@/context/auth"
 
-export default function SongForm() {
-  const [newSong, setNewSong] = useState({ name: "", artist: "", chord: "", bpm: "" })
+export default function SongForm({ onSubmit }: { onSubmit?: () => void }) {
+  const formSchema = z.object({
+    title: z.string().min(2).max(50),
+    artist: z.string().min(2).max(50),
+    chord: z.string().min(1).max(6),
+    bpm: z.string().max(3)
+  })
+  const user = useContext(UserContext)
 
-  const handleAddSong = () => {
-    if (!newSong.name || !newSong.artist) {
-      toast.warning("Please provide at least a song name and artist.")
-      return
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      artist: "",
+      chord: "A",
+      bpm: "120"
+    }
+  })
+
+  const handleAddSong = async (values: z.infer<typeof formSchema>) => {
+    const { error } = await createClient()
+      .from("songs")
+      .insert({
+        title: values.title,
+        artist: values.artist,
+        chord: values.chord,
+        bpm: Number.parseInt(values.bpm, 10),
+        user_id: user?.id
+      })
+
+    if (error) {
+      return toast.error("Error adding song to library.")
     }
 
-    // const bpmValue = newSong.bpm ? Number.parseInt(newSong.bpm) : 0
-    // const newSongWithId = {
-    //   ...newSong,
-    //   id: `${songs.length + 1}`,
-    //   bpm: bpmValue || 120 // Default to 120 if not provided or invalid
-    // }
-
-    // setSongs([...songs, newSongWithId])
-    setNewSong({ name: "", artist: "", chord: "", bpm: "" })
-    toast.success(`"${newSong.name}" has been added to your library.`)
+    onSubmit?.()
+    toast.success(`"${values.title}" has been added to your library.`)
   }
 
   return (
-    <React.Fragment>
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="song-name">Song Name</Label>
-          <Input
-            id="song-name"
-            value={newSong.name}
-            onChange={(e) => setNewSong({ ...newSong, name: e.target.value })}
-            placeholder="Enter song name"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="artist">Artist</Label>
-          <Input
-            id="artist"
-            value={newSong.artist}
-            onChange={(e) => setNewSong({ ...newSong, artist: e.target.value })}
-            placeholder="Enter artist name"
-          />
-        </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleAddSong)} className="grid gap-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Song Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter song name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="artist"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Artist</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter artist name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="chord">Primary Chord</Label>
-            <Input
-              id="chord"
-              value={newSong.chord}
-              onChange={(e) => setNewSong({ ...newSong, chord: e.target.value })}
-              placeholder="E.g., Am, C, G"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="bpm">BPM</Label>
-            <Input
-              id="bpm"
-              type="number"
-              value={newSong.bpm}
-              onChange={(e) => setNewSong({ ...newSong, bpm: e.target.value })}
-              placeholder="E.g., 120"
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="chord"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Primary Chord</FormLabel>
+                <FormControl>
+                  <ChordSelect
+                    className="w-full"
+                    value={field.value as Key}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bpm"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>BPM</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-      </div>
-      <Button onClick={handleAddSong}>Add Song</Button>
-    </React.Fragment>
+
+        <Button type="submit">Add Song</Button>
+      </form>
+    </Form>
   )
 }
