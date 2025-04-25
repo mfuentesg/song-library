@@ -322,7 +322,7 @@ export default function SongList() {
 
       <div className="space-y-3">
         {filteredSongs.map((song) => (
-          <div className="relative" key={song.id}>
+          <div className="relative" key={song.id} onClick={() => toggleSongSelection(song.id)}>
             <Song
               song={song}
               className={cn({
