@@ -19,12 +19,12 @@ import { GlobeIcon, LockIcon, CopyIcon } from "lucide-react"
 import { type PlaylistWithSongs } from "@/types/supabase"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 
-interface PlaylistConfigDialogProps {
+interface Props {
   playlist: PlaylistWithSongs
-  children?: React.ReactNode
+  trigger?: React.ReactNode
 }
 
-export function PlaylistConfigDialog({ playlist, children }: PlaylistConfigDialogProps) {
+export function PlaylistConfigDialog({ playlist, trigger }: Props) {
   const [name, setName] = useState(playlist.name)
   const [isPublic, setIsPublic] = useState(playlist.is_public ?? false)
   const [allowGuestEditing, setAllowGuestEditing] = useState(playlist.allow_guest_editing ?? false)
@@ -48,7 +48,7 @@ export function PlaylistConfigDialog({ playlist, children }: PlaylistConfigDialo
 
   return (
     <Dialog>
-      {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="sm:max-w-[425px]" aria-describedby="playlist settings">
         <DialogHeader>
           <DialogTitle>Playlist Settings</DialogTitle>

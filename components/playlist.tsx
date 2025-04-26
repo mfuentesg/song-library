@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { toast } from "sonner"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
@@ -11,12 +10,6 @@ import { Song } from "@/components/song"
 import { type PlaylistWithSongs } from "@/types/supabase"
 
 export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
-  const [isConfigOpen, setIsConfigOpen] = useState(false)
-
-  const openPlaylistConfig = () => {
-    setIsConfigOpen(true)
-  }
-
   const sharePlaylist = () => {
     if (!playlist.is_public) {
       toast.info("Make the playlist public in settings before sharing.")
@@ -81,15 +74,13 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
           <div className="flex gap-2 ">
             <PlaylistConfigDialog
               playlist={playlist}
-              open={isConfigOpen}
-              onOpenChange={setIsConfigOpen}
-              onSave={() => toast.info("to save playlist settings")}
-            >
-              <Button variant="outline" size="sm" onClick={openPlaylistConfig}>
-                <SettingsIcon className="h-4 w-4" />{" "}
-                <span className="sr-only sm:not-sr-only">Settings</span>
-              </Button>
-            </PlaylistConfigDialog>
+              trigger={
+                <Button variant="outline" size="sm">
+                  <SettingsIcon className="h-4 w-4" />{" "}
+                  <span className="sr-only sm:not-sr-only">Settings</span>
+                </Button>
+              }
+            />
 
             <Button variant="outline" size="sm" onClick={sharePlaylist}>
               <Share2Icon className="h-4 w-4" />{" "}
@@ -150,12 +141,6 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
             </div>
           )}
         </div>
-        <PlaylistConfigDialog
-          playlist={playlist}
-          open={isConfigOpen}
-          onOpenChange={setIsConfigOpen}
-          onSave={() => toast.info("to save playlist settings")}
-        />
       </div>
     </DragDropContext>
   )
