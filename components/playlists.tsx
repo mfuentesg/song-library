@@ -4,7 +4,10 @@ import { type PlaylistWithSongs } from "@/types/supabase"
 
 export async function Playlists() {
   const supabase = await createClient()
-  const { error, data: playlists } = await supabase.from("playlists").select("*, songs(*)")
+  const { error, data: playlists } = await supabase
+    .from("playlists")
+    .select("*, songs(*)")
+    .order("created_at", { ascending: true })
 
   if (error) {
     return <div className="text-center">Error loading playlists.</div>
