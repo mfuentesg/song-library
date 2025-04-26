@@ -4,74 +4,51 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { GlobeIcon, LockIcon, CopyIcon } from "lucide-react"
+import { type PlaylistWithSongs } from "@/types/supabase"
 
-interface PlaylistConfigDialogProps {
-  playlist: {
-    id: string
-    name: string
-    songs: string[]
-    isPublic?: boolean
-    allowGuestEditing?: boolean
-    shareCode?: string
-  }
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (playlist: {
-    id: string
-    name: string
-    songs: string[]
-    isPublic: boolean
-    allowGuestEditing: boolean
-    shareCode: string
-  }) => void
+interface Props {
+  playlist: PlaylistWithSongs
+  trigger?: React.ReactNode
 }
 
-export function PlaylistConfigDialog({
-  playlist,
-  open,
-  onOpenChange,
-  onSave
-}: PlaylistConfigDialogProps) {
+export function PlaylistConfigDialog({ playlist, trigger }: Props) {
   const [name, setName] = useState(playlist.name)
-  const [isPublic, setIsPublic] = useState(playlist.isPublic ?? false)
-  const [allowGuestEditing, setAllowGuestEditing] = useState(playlist.allowGuestEditing ?? false)
-  const [shareCode] = useState(playlist.shareCode ?? generateShareCode())
-
-  function generateShareCode() {
-    return Math.random().toString(36).substring(2, 10).toUpperCase()
-  }
+  const [isPublic, setIsPublic] = useState(playlist.is_public ?? false)
+  const [allowGuestEditing, setAllowGuestEditing] = useState(playlist.allow_guest_editing ?? false)
 
   function handleSave() {
-    onSave({
-      ...playlist,
-      name,
-      isPublic,
-      allowGuestEditing,
-      shareCode
-    })
-    onOpenChange(false)
+    // onSave({
+    //   ...playlist,
+    //   name,
+    //   is_public,
+    //   allowGuestEditing,
+    //   shareCode
+    // })
     toast.success("Your playlist settings have been updated successfully.")
   }
 
   function copyShareLink() {
-    const shareLink = `${window.location.origin}/shared-playlist/${shareCode}`
+    const shareLink = `${window.location.origin}/shared-playlist/${playlist.share_code}`
     navigator.clipboard.writeText(shareLink)
     toast.info("The playlist share link has been copied to your clipboard.")
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="sm:max-w-[425px]" aria-describedby="playlist settings">
         <DialogHeader>
           <DialogTitle>Playlist Settings</DialogTitle>
@@ -130,7 +107,7 @@ export function PlaylistConfigDialog({
             <div className="mt-4 space-y-2">
               <Label>Share Code</Label>
               <div className="flex items-center gap-2">
-                <Input value={shareCode} readOnly className="font-mono" />
+                <Input value={playlist.share_code ?? ""} readOnly className="font-mono" />
                 <Button variant="outline" size="icon" onClick={copyShareLink}>
                   <CopyIcon className="h-4 w-4" />
                 </Button>
@@ -142,9 +119,10 @@ export function PlaylistConfigDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+
           <Button onClick={handleSave}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>

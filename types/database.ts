@@ -77,6 +77,7 @@ export type Database = {
           id: string
           is_public: boolean
           name: string
+          share_code: string | null
           updated_at: string | null
           user_id: string
         }
@@ -86,6 +87,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           name?: string
+          share_code?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -95,6 +97,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           name?: string
+          share_code?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -138,7 +141,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_playlist_with_songs: {
+        Args: { name: string; user_id: string; song_ids: string[] }
+        Returns: {
+          allow_guest_editing: boolean
+          created_at: string | null
+          id: string
+          is_public: boolean
+          name: string
+          share_code: string | null
+          updated_at: string | null
+          user_id: string
+        }
+      }
     }
     Enums: {
       [_ in never]: never
