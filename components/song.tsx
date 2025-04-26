@@ -2,23 +2,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ClockIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ClassValue } from "clsx"
-import { Ref } from "react"
-
-export type song = {
-  id: string
-  name: string
-  artist: string
-  chord: string
-  bpm: number
-}
+import { type ClassValue } from "clsx"
+import { type Ref } from "react"
+import { type Tables } from "@/types/database"
 
 export function Song({
   song,
   className,
   ref
 }: {
-  song: song
+  song: Tables<"songs">
   className?: ClassValue
   ref?: Ref<HTMLDivElement> | undefined
 }) {
@@ -27,7 +20,7 @@ export function Song({
       <CardContent className="flex items-center justify-between px-0">
         <div className="flex flex-col gap-3">
           <div>
-            <h3 className="font-medium">{song.name}</h3>
+            <h3 className="font-medium">{song.title}</h3>
             <p className="text-sm text-muted-foreground">{song.artist}</p>
           </div>
           <div className="flex items-start gap-2">

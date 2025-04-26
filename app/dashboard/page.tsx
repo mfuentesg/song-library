@@ -1,4 +1,4 @@
-import SongLibrary from "@/components/song-library"
+import { SongLibrary } from "@/components/song-library"
 import { Header } from "@/components/header"
 import { createClient } from "@/lib/supabase/server"
 import { UserProvider } from "@/components/user-provider"
