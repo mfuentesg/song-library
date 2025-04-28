@@ -6,10 +6,12 @@ export async function Playlists() {
   const supabase = await createClient()
   const { error, data: playlists } = await supabase
     .from("playlists")
-    .select("*, songs(*)")
+    .select("*, songs:playlist_songs(position, ...songs(*))")
     .order("created_at", { ascending: true })
+    .order("position", { ascending: true, referencedTable: "playlist_songs" })
 
   if (error) {
+    console.log("Error loading playlists", error)
     return <div className="text-center">Error loading playlists.</div>
   }
 
