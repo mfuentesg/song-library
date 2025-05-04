@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { toast } from "sonner"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
@@ -33,6 +34,28 @@ function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
 }
 
 export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
+  const [songs, setSongs] = useState(playlist.songs)
+
+  const updateSongs = (result: DropResult<string>) => {
+    const { destination, source } = result
+    const destinationIndex = destination?.index
+    const sourceIndex = source.index
+
+    const sourceSong = songs[sourceIndex]
+    const destinationSong = songs[destinationIndex!]
+
+    const newSongs = [...songs]
+    newSongs[sourceIndex] = {
+      ...newSongs[sourceIndex],
+      position: destinationSong.position
+    }
+    newSongs[destinationIndex!] = {
+      ...newSongs[destinationIndex!],
+      position: sourceSong.position
+    }
+    setSongs(newSongs)
+  }
+
   const sharePlaylist = () => {
     if (!playlist.is_public) {
       toast.info("Make the playlist public in settings before sharing.")
@@ -59,10 +82,10 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
     }
 
     const supabase = createClient()
-    const sourceSong = playlist.songs[source.index]
-    const destinationSong = playlist.songs[destination.index]
+    const sourceSong = songs[source.index]
+    const destinationSong = songs[destination.index]
 
-    const { error } = await supabase.from("playlist_songs").upsert([
+    const newOrder = [
       {
         playlist_id: playlist.id,
         song_id: sourceSong.id,
@@ -73,7 +96,11 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
         song_id: destinationSong.id,
         position: sourceSong.position
       }
-    ])
+    ]
+
+    updateSongs(result)
+
+    const { error } = await supabase.from("playlist_songs").upsert(newOrder)
 
     if (error) {
       toast.error("Error reordering playlist")
@@ -114,7 +141,7 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
         </div>
 
         <div className="space-y-2">
-          {playlist.songs.length === 0 ? (
+          {songs.length === 0 ? (
             <p className="text-sm text-muted-foreground italic p-4">
               This playlist is empty. Add songs from the library.
             </p>
@@ -127,31 +154,33 @@ export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
                     ref={provided.innerRef}
                     className={`space-y-2 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
                   >
-                    {playlist.songs.map((song, index) => {
-                      return (
-                        <Draggable key={song.id} draggableId={song.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
-                            >
+                    {songs
+                      .sort((a, b) => a.position - b.position)
+                      .map((song, index) => {
+                        return (
+                          <Draggable key={song.id} draggableId={song.id} index={index}>
+                            {(provided, snapshot) => (
                               <div
-                                className="flex items-center gap-3 relative"
-                                {...provided.dragHandleProps}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
                               >
-                                <Song
-                                  song={song}
-                                  className="w-full"
+                                <div
+                                  className="flex items-center gap-3 relative"
                                   {...provided.dragHandleProps}
-                                />
-                                <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
+                                >
+                                  <Song
+                                    song={song}
+                                    className="w-full"
+                                    {...provided.dragHandleProps}
+                                  />
+                                  <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      )
-                    })}
+                            )}
+                          </Draggable>
+                        )
+                      })}
                     {provided.placeholder}
                   </div>
                 )}
