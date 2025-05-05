@@ -56,7 +56,7 @@ export function SongList({ songs }: { songs: Tables<"songs">[] }) {
           const isSelected = selectedSongs.includes(song.id)
 
           return (
-            <div className="relative" key={song.id} onClick={toggleSongSelection(song.id)}>
+            <div className="relative" key={song.id}>
               <Song
                 song={song}
                 className={cn({
