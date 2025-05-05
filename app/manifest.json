@@ -1,6 +1,6 @@
 {
   "name": "Song Library",
-  "short_name": "Songs",
+  "short_name": "Song Library",
   "description": "Organize and share your music with fellow musicians",
   "start_url": "/",
   "display": "standalone",
