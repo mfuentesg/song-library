@@ -51,7 +51,7 @@ export function PlaylistConfigDialog({ playlist, trigger }: Props) {
     defaultValues: {
       name: playlist.name,
       isPublic: playlist.is_public ?? false,
-      allowGuestEditing: playlist.allow_guest_editing ?? false
+      allowGuestEditing: (playlist.is_public && playlist.allow_guest_editing) ?? false
     }
   })
 
@@ -66,7 +66,7 @@ export function PlaylistConfigDialog({ playlist, trigger }: Props) {
       .update({
         name: values.name,
         is_public: values.isPublic,
-        allow_guest_editing: values.allowGuestEditing,
+        allow_guest_editing: values.allowGuestEditing && values.isPublic,
         user_id: user?.id
       })
       .eq("id", playlist.id)

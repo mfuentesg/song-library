@@ -30,6 +30,9 @@ import { PlusIcon } from "lucide-react"
 export const SongFormDialog = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const toggleDialog = () => {
+    if (isAddDialogOpen) {
+      form.reset()
+    }
     setIsAddDialogOpen((prev) => !prev)
   }
 
