@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
@@ -33,8 +33,32 @@ function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   )
 }
 
-export function Playlist({ playlist }: { playlist: PlaylistWithSongs }) {
+export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWithSongs }) {
+  const supabase = createClient()
+  const [playlist, setPlaylist] = useState(originalPlaylist)
   const [songs, setSongs] = useState(playlist.songs)
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`playlist:${playlist.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "playlists", filter: `id=eq.${playlist.id}` },
+        ({ new: newPlaylist }) => {
+          setPlaylist((prevPlaylist) => ({
+            ...prevPlaylist,
+            is_public: newPlaylist.is_public,
+            allow_guest_editing: newPlaylist.allow_guest_editing,
+            name: newPlaylist.name
+          }))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [playlist.id, supabase])
 
   const updateSongs = (result: DropResult<string>) => {
     const { destination, source } = result
