@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo } from "react"
 import { toast } from "sonner"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PlaylistConfigDialog } from "@/components/playlist-config-dialog"
 import { Song } from "@/components/song"
-import { type PlaylistWithSongs } from "@/types/supabase"
+import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
 import { createClient } from "@/lib/supabase/client"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
@@ -33,10 +33,38 @@ function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   )
 }
 
+const DraggableSong = memo(({ index, song }: { index: number; song: SongWithPosition }) => {
+  return (
+    <Draggable draggableId={song.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
+        >
+          <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
+            <Song song={song} className="w-full" />
+            <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
+          </div>
+        </div>
+      )}
+    </Draggable>
+  )
+})
+
+DraggableSong.displayName = "DraggableSong"
+
 export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWithSongs }) {
   const supabase = createClient()
   const [playlist, setPlaylist] = useState(originalPlaylist)
-  const [songs, setSongs] = useState(playlist.songs)
+  const sortedSongIds = playlist.songs
+    .sort((a, b) => a.position - b.position)
+    .map((song) => song.id)
+  const [songIds, setSongIds] = useState(sortedSongIds)
+  const songs = playlist.songs.reduce<{ [key: string]: SongWithPosition }>(
+    (acc, song) => ({ ...acc, [song.id]: song }),
+    {}
+  )
 
   useEffect(() => {
     const channel = supabase
@@ -60,26 +88,6 @@ export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWit
     }
   }, [playlist.id, supabase])
 
-  const updateSongs = (result: DropResult<string>) => {
-    const { destination, source } = result
-    const destinationIndex = destination?.index
-    const sourceIndex = source.index
-
-    const sourceSong = songs[sourceIndex]
-    const destinationSong = songs[destinationIndex!]
-
-    const newSongs = [...songs]
-    newSongs[sourceIndex] = {
-      ...newSongs[sourceIndex],
-      position: destinationSong.position
-    }
-    newSongs[destinationIndex!] = {
-      ...newSongs[destinationIndex!],
-      position: sourceSong.position
-    }
-    setSongs(newSongs)
-  }
-
   const sharePlaylist = () => {
     if (!playlist.is_public) {
       toast.info("Make the playlist public in settings before sharing.")
@@ -93,39 +101,29 @@ export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWit
 
   const handleDragEnd = async (result: DropResult<string>) => {
     const { destination, source } = result
-
     if (!destination) {
       return
     }
-
     const isSamePosition =
       destination.droppableId === source.droppableId && destination.index === source.index
     const isSamePlaylist = destination.droppableId === source.droppableId
     if (isSamePosition || !isSamePlaylist) {
       return
     }
-
     const supabase = createClient()
-    const sourceSong = songs[source.index]
-    const destinationSong = songs[destination.index]
+    const newSongIds = Array.from(songIds)
+    const [removed] = newSongIds.splice(source.index, 1)
 
-    const newOrder = [
-      {
-        playlist_id: playlist.id,
-        song_id: sourceSong.id,
-        position: destinationSong.position
-      },
-      {
-        playlist_id: playlist.id,
-        song_id: destinationSong.id,
-        position: sourceSong.position
-      }
-    ]
+    newSongIds.splice(destination.index, 0, removed)
+    setSongIds(newSongIds)
 
-    updateSongs(result)
+    const newPlaylistOrder = newSongIds.map((songId, index) => ({
+      playlist_id: playlist.id,
+      song_id: songId,
+      position: index + 1
+    }))
 
-    const { error } = await supabase.from("playlist_songs").upsert(newOrder)
-
+    const { error } = await supabase.from("playlist_songs").upsert(newPlaylistOrder)
     if (error) {
       toast.error("Error reordering playlist")
       return
@@ -165,7 +163,7 @@ export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWit
         </div>
 
         <div className="space-y-2">
-          {songs.length === 0 ? (
+          {songIds.length === 0 ? (
             <p className="text-sm text-muted-foreground italic p-4">
               This playlist is empty. Add songs from the library.
             </p>
@@ -178,33 +176,9 @@ export function Playlist({ playlist: originalPlaylist }: { playlist: PlaylistWit
                     ref={provided.innerRef}
                     className={`space-y-2 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
                   >
-                    {songs
-                      .sort((a, b) => a.position - b.position)
-                      .map((song, index) => {
-                        return (
-                          <Draggable key={song.id} draggableId={song.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
-                              >
-                                <div
-                                  className="flex items-center gap-3 relative"
-                                  {...provided.dragHandleProps}
-                                >
-                                  <Song
-                                    song={song}
-                                    className="w-full"
-                                    {...provided.dragHandleProps}
-                                  />
-                                  <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        )
-                      })}
+                    {songIds.map((songId, index) => {
+                      return <DraggableSong key={songId} song={songs[songId]} index={index} />
+                    })}
                     {provided.placeholder}
                   </div>
                 )}
