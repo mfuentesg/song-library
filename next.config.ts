@@ -47,4 +47,13 @@ const nextConfig: NextConfig = {
   }
 }
 
-export default withPWA(nextConfig)
+const runtimeCaching = require("next-pwa/cache")
+
+export default withPWA({
+  ...nextConfig,
+  pwa: {
+    dest: "public",
+    runtimeCaching,
+    buildExcludes: [/middleware-manifest\.json$/]
+  }
+})
