@@ -79,7 +79,7 @@ export function PlaylistConfigDialog({ playlist, trigger }: Props) {
   }
 
   function copyShareLink() {
-    const shareLink = `${window.location.origin}/shared-playlist/${playlist.share_code}`
+    const shareLink = `${window.location.origin}/shared/${playlist.share_code}`
     navigator.clipboard.writeText(shareLink)
     toast.info("The playlist share link has been copied to your clipboard.")
   }
@@ -185,7 +185,7 @@ export function PlaylistConfigDialog({ playlist, trigger }: Props) {
                   <Label>Share Code</Label>
                   <div className="flex items-center gap-2">
                     <Input value={playlist.share_code ?? ""} readOnly className="font-mono" />
-                    <Button variant="outline" size="icon" onClick={copyShareLink}>
+                    <Button type="button" variant="outline" size="icon" onClick={copyShareLink}>
                       <CopyIcon className="h-4 w-4" />
                     </Button>
                   </div>
