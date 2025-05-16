@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { Playlist } from "@/components/playlist"
 
-export default async function SharedPlaylistPage({ params }: { params: { code: string } }) {
+export default async function SharedPlaylistPage({
+  params
+}: {
+  params: Promise<{ code: string }>
+}) {
   const { code } = await params
   const supabase = await createClient()
 
