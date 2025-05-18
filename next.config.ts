@@ -1,10 +1,4 @@
 import type { NextConfig } from "next"
-const withPWA = require("next-pwa")({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true
-})
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -49,11 +43,13 @@ const nextConfig: NextConfig = {
 
 const runtimeCaching = require("next-pwa/cache")
 
-export default withPWA({
-  ...nextConfig,
-  pwa: {
-    dest: "public",
-    runtimeCaching,
-    buildExcludes: [/middleware-manifest\.json$/]
-  }
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching,
+  buildExcludes: [/middleware-manifest\.json$/]
 })
+
+export default withPWA(nextConfig)

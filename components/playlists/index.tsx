@@ -1,17 +1,18 @@
-import { Playlist } from "@/components/playlist"
-import { createClient } from "@/lib/supabase/server"
-import { type PlaylistWithSongs } from "@/types/supabase"
+"use client"
 
-export async function Playlists() {
-  const supabase = await createClient()
-  const { error, data: playlists } = await supabase
-    .from("playlists")
-    .select("*, songs:playlist_songs(position, ...songs(*))")
-    .order("created_at", { ascending: true })
-    .order("position", { ascending: true, referencedTable: "playlist_songs" })
+import { Playlist } from "@/components/playlist"
+import { type PlaylistWithSongs } from "@/types/supabase"
+import { fetchPlaylists } from "./actions"
+import { useSupabaseFetch } from "@/hooks/supabase"
+
+export function Playlists() {
+  const { data: playlists, error, isLoading } = useSupabaseFetch(fetchPlaylists)
+
+  if (isLoading) {
+    return <div className="text-center">loading playlists ...</div>
+  }
 
   if (error) {
-    console.log("Error loading playlists", error)
     return <div className="text-center">Error loading playlists.</div>
   }
 

@@ -1,7 +1,9 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { SearchIcon } from "lucide-react"
+
+import { useSupabaseFetch } from "@/hooks/supabase"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -10,10 +12,30 @@ import { Song } from "@/components/song"
 import { cn } from "@/lib/utils"
 import { type Tables } from "@/types/database"
 import { PlaylistFormDialog } from "@/components/playlist-form"
+import { createClient } from "@/lib/supabase/client"
+import { fetchSongs } from "./actions"
 
-export function SongList({ songs }: { songs: Tables<"songs">[] }) {
+export function SongList() {
+  const { data: songs, error, isLoading, setData } = useSupabaseFetch(fetchSongs)
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const supabase = createClient()
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("new:songs")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "songs" },
+        ({ new: newSong }: { new: Tables<"songs"> }) => {
+          setData((prevSongs) => (prevSongs ?? []).concat(newSong))
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [setData, supabase])
 
   const toggleSongSelection = (songId: string) => () => {
     setSelectedSongs((prev) =>
@@ -22,14 +44,14 @@ export function SongList({ songs }: { songs: Tables<"songs">[] }) {
   }
 
   const getSongsBySelection = () => {
-    return songs.filter((song) => selectedSongs.includes(song.id))
+    return (songs ?? []).filter((song) => selectedSongs.includes(song.id))
   }
 
   const clearSelection = () => {
     setSelectedSongs([])
   }
 
-  const filteredSongs = songs.filter(
+  const filteredSongs = (songs ?? []).filter(
     (song) =>
       song.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -52,6 +74,8 @@ export function SongList({ songs }: { songs: Tables<"songs">[] }) {
       <h2 className="text-xl font-semibold mt-6">Song Library</h2>
 
       <div className="space-y-3">
+        {isLoading && <p>loading songs ...</p>}
+        {error && <p>error fetching songs ...</p>}
         {filteredSongs.map((song) => {
           const isSelected = selectedSongs.includes(song.id)
 
