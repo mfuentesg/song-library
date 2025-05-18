@@ -1,22 +1,42 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { ClockIcon } from "lucide-react"
+import { type ClassValue } from "clsx"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ClockIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { type ClassValue } from "clsx"
-import { type Ref } from "react"
 import { type Tables } from "@/types/database"
+import { createClient } from "@/lib/supabase/client"
 
 export function Song({
-  song,
-  className,
-  ref
+  song: originalSong,
+  className
 }: {
   song: Tables<"songs">
   className?: ClassValue
-  ref?: Ref<HTMLDivElement> | undefined
 }) {
+  const [song, setSong] = useState(originalSong)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`song:${song.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "songs", filter: `id=eq.${song.id}` },
+        ({ new: newSong }) => {
+          setSong((prevSong) => ({ ...prevSong, ...newSong }))
+        }
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, song.id])
+
   return (
-    <Card className={cn(className, "border-2 p-4")} ref={ref}>
+    <Card className={cn(className, "border-2 p-4")}>
       <CardContent className="flex items-center justify-between px-0">
         <div className="flex flex-col gap-3">
           <div>
