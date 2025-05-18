@@ -1,8 +1,4 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeftIcon } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { Playlist } from "@/components/playlist"
 
@@ -28,14 +24,6 @@ export default async function SharedPlaylistPage({
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-6">
-        <Button asChild variant="outline" className="mb-4">
-          <Link href="/">
-            <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back to Home
-          </Link>
-        </Button>
-      </div>
-
       <Playlist playlist={playlist} className="bg-white p-0" />
     </div>
   )
