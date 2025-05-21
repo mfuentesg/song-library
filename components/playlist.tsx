@@ -3,7 +3,14 @@
 import Link from "next/link"
 import { useState, useEffect, memo, useContext } from "react"
 import { toast } from "sonner"
-import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
+import {
+  GlobeIcon,
+  LockIcon,
+  Share2Icon,
+  SettingsIcon,
+  GripVerticalIcon,
+  Trash2Icon
+} from "lucide-react"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 
 import { cn } from "@/lib/utils"
@@ -14,6 +21,7 @@ import { Song } from "@/components/song"
 import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
 import { createClient } from "@/lib/supabase/client"
 import { UserContext } from "@/context/auth"
+import { DeletePlaylistDialog } from "./playlist-delete-dialog"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   return (
@@ -187,7 +195,8 @@ export function Playlist({
       return
     }
 
-    navigator.clipboard.writeText(`${window.location.origin}/shared/${playlist.share_code}`)
+    const shareLink = `${window.location.origin}/shared/${playlist.share_code}`
+    navigator.clipboard.writeText(shareLink)
     toast.info("The playlist share link has been copied to your clipboard.")
   }
 
@@ -204,6 +213,17 @@ export function Playlist({
         </div>
         <div className="flex gap-2 ">
           {user && (
+            <DeletePlaylistDialog
+              playlistId={playlist.id}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Trash2Icon className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only">Delete</span>
+                </Button>
+              }
+            />
+          )}
+          {user && (
             <PlaylistConfigDialog
               playlist={playlist}
               trigger={
@@ -214,6 +234,7 @@ export function Playlist({
               }
             />
           )}
+
           <Button
             variant="outline"
             size="sm"
