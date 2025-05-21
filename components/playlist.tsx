@@ -13,6 +13,7 @@ import { Song } from "@/components/song"
 import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
 import { createClient } from "@/lib/supabase/client"
 import { UserContext } from "@/context/auth"
+import Link from "next/link"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   return (
@@ -162,8 +163,7 @@ export function Playlist({
       return
     }
 
-    const shareLink = `${window.location.origin}/shared/${playlist.share_code}`
-    navigator.clipboard.writeText(shareLink)
+    navigator.clipboard.writeText(`${window.location.origin}/shared/${playlist.share_code}`)
     toast.info("The playlist share link has been copied to your clipboard.")
   }
 
@@ -171,7 +171,11 @@ export function Playlist({
     <div key={playlist.id} className={cn("space-y-2 p-4 rounded-md bg-muted", className)}>
       <div className="flex items-center justify-between">
         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-          <h3 className="text-lg font-semibold">{playlist.name}</h3>
+          <h3 className="text-lg font-semibold">
+            <Link href={`/shared/${playlist.share_code}`} target="_blank">
+              {playlist.name}
+            </Link>
+          </h3>
           <PlaylistBadges playlist={playlist} />
         </div>
         <div className="flex gap-2 ">

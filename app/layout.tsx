@@ -4,6 +4,8 @@ import { Lato } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { PWAUpdate } from "@/components/pwa-update"
+import { createClient } from "@/lib/supabase/server"
+import { UserProvider } from "@/components/user-provider"
 
 import "./globals.css"
 
@@ -35,11 +37,16 @@ export const metadata: Metadata = {
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabase = await createClient()
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
   return (
     <html lang="en" className={`${lato.variable}`} suppressHydrationWarning>
       <head>
@@ -52,9 +59,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {children}
-        </ThemeProvider>
+        <UserProvider user={user}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            {children}
+          </ThemeProvider>
+        </UserProvider>
         <Toaster />
         <PWAUpdate />
       </body>

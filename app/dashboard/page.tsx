@@ -1,14 +1,9 @@
 import { SongLibrary } from "@/components/song-library"
 import { Header } from "@/components/header"
 import { createClient } from "@/lib/supabase/server"
-import { UserProvider } from "@/components/user-provider"
 
 export default async function Home() {
   const supabase = await createClient()
-  const {
-    data: { user }
-  } = await supabase.auth.getUser()
-
   const [playlistsResponse, songsResponse] = await Promise.all([
     supabase
       .from("playlists")
@@ -19,7 +14,7 @@ export default async function Home() {
   ])
 
   return (
-    <UserProvider user={user}>
+    <>
       <Header />
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8">
@@ -31,6 +26,6 @@ export default async function Home() {
           <SongLibrary playlists={playlistsResponse.data} songs={songsResponse.data} />
         )}
       </main>
-    </UserProvider>
+    </>
   )
 }
