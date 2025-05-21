@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState, useEffect, memo, useContext } from "react"
 import { toast } from "sonner"
 import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, GripVerticalIcon } from "lucide-react"
@@ -13,7 +14,6 @@ import { Song } from "@/components/song"
 import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
 import { createClient } from "@/lib/supabase/client"
 import { UserContext } from "@/context/auth"
-import Link from "next/link"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   return (
@@ -149,6 +149,30 @@ export function Playlist({
             allow_guest_editing: newPlaylist.allow_guest_editing,
             name: newPlaylist.name
           }))
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "playlist_songs",
+          filter: `playlist_id=eq.${playlist.id}`
+        },
+        () => {
+          if (toast.getToasts().length !== 0) {
+            return
+          }
+
+          toast.warning("Playlist updated by somebody else.", {
+            dismissible: false,
+            action: {
+              label: "Refresh",
+              onClick: () => {
+                window.location.reload()
+              }
+            }
+          })
         }
       )
       .subscribe()
