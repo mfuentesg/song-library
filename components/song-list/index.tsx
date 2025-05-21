@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react"
 import { SearchIcon } from "lucide-react"
 
-import { useSupabaseFetch } from "@/hooks/supabase"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -13,10 +12,9 @@ import { cn } from "@/lib/utils"
 import { type Tables } from "@/types/database"
 import { PlaylistFormDialog } from "@/components/playlist-form"
 import { createClient } from "@/lib/supabase/client"
-import { fetchSongs } from "./actions"
 
-export function SongList() {
-  const { data: songs, error, isLoading, setData } = useSupabaseFetch(fetchSongs)
+export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) {
+  const [songs, setSongs] = useState(initialSongs)
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const supabase = createClient()
@@ -28,14 +26,14 @@ export function SongList() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "songs" },
         ({ new: newSong }: { new: Tables<"songs"> }) => {
-          setData((prevSongs) => (prevSongs ?? []).concat(newSong))
+          setSongs((prevSongs) => (prevSongs ?? []).concat(newSong))
         }
       )
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [setData, supabase])
+  }, [setSongs, supabase])
 
   const toggleSongSelection = (songId: string) => () => {
     setSelectedSongs((prev) =>
@@ -74,8 +72,6 @@ export function SongList() {
       <h2 className="text-xl font-semibold mt-6">Song Library</h2>
 
       <div className="space-y-3">
-        {isLoading && <p>loading songs ...</p>}
-        {error && <p>error fetching songs ...</p>}
         {filteredSongs.map((song) => {
           const isSelected = selectedSongs.includes(song.id)
 

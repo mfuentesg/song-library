@@ -9,6 +9,15 @@ export default async function Home() {
     data: { user }
   } = await supabase.auth.getUser()
 
+  const [playlistsResponse, songsResponse] = await Promise.all([
+    supabase
+      .from("playlists")
+      .select("*, songs:playlist_songs(position, ...songs(*))")
+      .order("created_at", { ascending: true })
+      .order("position", { ascending: true, referencedTable: "playlist_songs" }),
+    supabase.from("songs").select("*")
+  ])
+
   return (
     <UserProvider user={user}>
       <Header />
@@ -17,7 +26,10 @@ export default async function Home() {
           <h1 className="text-3xl font-bold">Song Library</h1>
           <p className="text-muted-foreground">Organize and share your music collection</p>
         </div>
-        <SongLibrary />
+        {(playlistsResponse.error || songsResponse.error) && <p>Error loading data</p>}
+        {!playlistsResponse.error && !songsResponse.error && (
+          <SongLibrary playlists={playlistsResponse.data} songs={songsResponse.data} />
+        )}
       </main>
     </UserProvider>
   )

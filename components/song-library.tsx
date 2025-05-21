@@ -5,8 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Playlists } from "@/components/playlists"
 import { SongList } from "@/components/song-list"
 import { SongFormDialog } from "@/components/song-form"
+import { type PlaylistWithSongs } from "@/types/supabase"
+import { type Tables } from "@/types/database"
 
-export function SongLibrary() {
+export function SongLibrary({
+  playlists,
+  songs
+}: {
+  playlists: PlaylistWithSongs[]
+  songs: Tables<"songs">[]
+}) {
   const [activeTab, setActiveTab] = useState<string>("all-songs")
 
   return (
@@ -26,7 +34,7 @@ export function SongLibrary() {
           forceMount
           hidden={activeTab !== "all-songs"}
         >
-          <SongList />
+          <SongList songs={songs} />
         </TabsContent>
 
         <TabsContent
@@ -35,7 +43,7 @@ export function SongLibrary() {
           forceMount
           hidden={activeTab !== "playlists"}
         >
-          <Playlists />
+          <Playlists playlists={playlists} />
         </TabsContent>
       </Tabs>
     </div>
