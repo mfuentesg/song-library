@@ -49,7 +49,13 @@ const withPWA = require("next-pwa")({
   register: true,
   skipWaiting: true,
   runtimeCaching,
-  buildExcludes: [/middleware-manifest\.json$/]
+  buildExcludes: [
+    /chunks\/.*$/,
+    /css\/.*$/,
+    /middleware-manifest\.json$/,
+    /_next\/static\/.*$/,
+    /images\/.*$/
+  ]
 })
 
 export default withPWA(nextConfig)
