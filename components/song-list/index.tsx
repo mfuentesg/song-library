@@ -1,7 +1,17 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { SearchIcon } from "lucide-react"
+import { SearchIcon, Trash2Icon } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,16 +22,59 @@ import { cn } from "@/lib/utils"
 import { type Tables } from "@/types/database"
 import { PlaylistFormDialog } from "@/components/playlist-form"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
+
+const SongDeleteAlert = ({
+  song,
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  song: Tables<"songs">
+  onConfirm?: (id: string) => Promise<void>
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) => {
+  const onConfirmHandler = () => onConfirm?.(song.id)
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete &quot;
+            {song?.title}
+            &quot;.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirmHandler}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
 export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) {
   const [songs, setSongs] = useState(initialSongs)
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
+  const [songToDelete, setSongToDelete] = useState<Tables<"songs">>()
+  const [alertVisible, setAlertVisible] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const supabase = createClient()
 
   useEffect(() => {
     const channel = supabase
-      .channel("new:songs")
+      .channel("song:updates")
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "songs" },
+        ({ old: deletedSong }) => {
+          setSongs((prevSongs) => (prevSongs ?? []).filter((song) => song.id !== deletedSong.id))
+        }
+      )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "songs" },
@@ -41,12 +94,31 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
     )
   }
 
+  const handleDelete = async (songId: string) => {
+    const { error } = await supabase.from("songs").delete().eq("id", songId)
+
+    setAlertVisible(false)
+    setSongToDelete(undefined)
+
+    if (error) {
+      toast.error("Failed to delete song")
+      return
+    }
+
+    toast.success("Song deleted successfully")
+  }
+
   const getSongsBySelection = () => {
     return (songs ?? []).filter((song) => selectedSongs.includes(song.id))
   }
 
   const clearSelection = () => {
     setSelectedSongs([])
+  }
+
+  const toggleDeletionAlert = (song: Tables<"songs">) => () => {
+    setSongToDelete(song)
+    setAlertVisible(true)
   }
 
   const filteredSongs = (songs ?? []).filter(
@@ -71,6 +143,13 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
 
       <h2 className="text-xl font-semibold mt-6">Song Library</h2>
 
+      <SongDeleteAlert
+        song={songToDelete!}
+        open={alertVisible}
+        onOpenChange={setAlertVisible}
+        onConfirm={handleDelete}
+      />
+
       <div className="space-y-3">
         {filteredSongs.map((song) => {
           const isSelected = selectedSongs.includes(song.id)
@@ -90,6 +169,12 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
                 checked={isSelected}
                 onCheckedChange={toggleSongSelection(song.id)}
               />
+
+              <div className="absolute right-2 bottom-2">
+                <Button variant="ghost" onClick={toggleDeletionAlert(song)}>
+                  <Trash2Icon />
+                </Button>
+              </div>
             </div>
           )
         })}
