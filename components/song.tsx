@@ -36,7 +36,7 @@ export function Song({
   }, [supabase, song.id])
 
   return (
-    <Card className={cn(className, "border-2 p-4")}>
+    <Card className={cn(className, "border-2 p-4 py-2")}>
       <CardContent className="flex items-center justify-between px-0">
         <div className="flex flex-col gap-3">
           <div>

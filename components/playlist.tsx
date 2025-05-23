@@ -120,7 +120,7 @@ const DraggableSong = memo(({ index, song }: { index: number; song: SongWithPosi
         >
           <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
             <Song song={song} className="w-full" />
-            <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5" />
+            <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5 h-5" />
           </div>
         </div>
       )}
