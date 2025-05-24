@@ -90,7 +90,7 @@ export function DraggablePlaylist({ playlist }: { playlist: PlaylistWithSongs })
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div key={playlist.id} className="space-y-2">
-        <Droppable droppableId={playlist.id}>
+        <Droppable droppableId={playlist.id} isCombineEnabled>
           {(provided, snapshot) => (
             <div
               {...provided.droppableProps}
@@ -218,7 +218,7 @@ export function Playlist({
               trigger={
                 <Button variant="outline" size="sm">
                   <Trash2Icon className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only">Delete</span>
+                  <span className="sr-only">Delete</span>
                 </Button>
               }
             />
@@ -228,8 +228,7 @@ export function Playlist({
               playlist={playlist}
               trigger={
                 <Button variant="outline" size="sm">
-                  <SettingsIcon className="h-4 w-4" />{" "}
-                  <span className="sr-only sm:not-sr-only">Settings</span>
+                  <SettingsIcon className="h-4 w-4" /> <span className="sr-only">Settings</span>
                 </Button>
               }
             />
@@ -241,7 +240,7 @@ export function Playlist({
             onClick={sharePlaylist}
             disabled={!playlist.is_public}
           >
-            <Share2Icon className="h-4 w-4" /> <span className="sr-only sm:not-sr-only">Share</span>
+            <Share2Icon className="h-4 w-4" /> <span className="sr-only">Share</span>
           </Button>
         </div>
       </div>
