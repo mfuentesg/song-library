@@ -8,7 +8,7 @@ export default async function Home() {
     supabase
       .from("playlists")
       .select("*, songs:playlist_songs(position, ...songs(*))")
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
       .order("position", { ascending: true, referencedTable: "playlist_songs" }),
     supabase.from("songs").select("*")
   ])

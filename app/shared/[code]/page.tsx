@@ -15,7 +15,6 @@ export default async function SharedPlaylistPage({
     .from("playlists")
     .select("*, songs:playlist_songs(position, ...songs(*))")
     .filter("share_code", "eq", code)
-    .order("created_at", { ascending: true })
     .order("position", { ascending: true, referencedTable: "playlist_songs" })
     .single()
 

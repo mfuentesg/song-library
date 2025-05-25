@@ -52,10 +52,7 @@ export function Playlist({
   const isSameOwner = playlist.user_id === user?.id
   const allowDragging = isSameOwner || (playlist.is_public && playlist.allow_guest_editing)
 
-  const sortedSongIds = playlist.songs
-    .sort((a, b) => a.position - b.position)
-    .map((song) => song.id)
-  const [songIds, setSongIds] = useState(sortedSongIds)
+  const [songIds, setSongIds] = useState(playlist.songs.map((song) => song.id))
   const songs = playlist.songs.reduce<{ [key: string]: SongWithPosition }>(
     (acc, song) => ({ ...acc, [song.id]: song }),
     {}
