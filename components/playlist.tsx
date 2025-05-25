@@ -1,27 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect, memo, useContext } from "react"
+import { useState, useEffect, useContext } from "react"
 import { toast } from "sonner"
-import {
-  GlobeIcon,
-  LockIcon,
-  Share2Icon,
-  SettingsIcon,
-  GripVerticalIcon,
-  Trash2Icon
-} from "lucide-react"
-import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
+import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, Trash2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PlaylistConfigDialog } from "@/components/playlist-config-dialog"
 import { Song } from "@/components/song"
-import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
+import { type PlaylistWithSongs } from "@/types/supabase"
 import { createClient } from "@/lib/supabase/client"
 import { UserContext } from "@/context/auth"
 import { DeletePlaylistDialog } from "./playlist-delete-dialog"
+import { DraggablePlaylist } from "./draggable-playlist"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   return (
@@ -45,91 +38,6 @@ function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   )
 }
 
-export function DraggablePlaylist({ playlist }: { playlist: PlaylistWithSongs }) {
-  const handleDragEnd = async (result: DropResult<string>) => {
-    const { destination, source } = result
-    if (!destination) {
-      return
-    }
-    const isSamePosition =
-      destination.droppableId === source.droppableId && destination.index === source.index
-    const isSamePlaylist = destination.droppableId === source.droppableId
-    if (isSamePosition || !isSamePlaylist) {
-      return
-    }
-    const supabase = createClient()
-    const newSongIds = Array.from(songIds)
-    const [removed] = newSongIds.splice(source.index, 1)
-
-    newSongIds.splice(destination.index, 0, removed)
-    setSongIds(newSongIds)
-
-    const newPlaylistOrder = newSongIds.map((songId, index) => ({
-      playlist_id: playlist.id,
-      song_id: songId,
-      position: index + 1
-    }))
-
-    const { error } = await supabase.from("playlist_songs").upsert(newPlaylistOrder)
-    if (error) {
-      toast.error("Error reordering playlist")
-      return
-    }
-    toast.info("Playlist reordered")
-  }
-
-  const sortedSongIds = playlist.songs
-    .sort((a, b) => a.position - b.position)
-    .map((song) => song.id)
-  const [songIds, setSongIds] = useState(sortedSongIds)
-  const songs = playlist.songs.reduce<{ [key: string]: SongWithPosition }>(
-    (acc, song) => ({ ...acc, [song.id]: song }),
-    {}
-  )
-
-  return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div key={playlist.id} className="space-y-2">
-        <Droppable droppableId={playlist.id} isCombineEnabled>
-          {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className={`space-y-2 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
-            >
-              {songIds.map((songId, index) => {
-                return <DraggableSong key={songId} song={songs[songId]} index={index} />
-              })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </div>
-    </DragDropContext>
-  )
-}
-
-const DraggableSong = memo(({ index, song }: { index: number; song: SongWithPosition }) => {
-  return (
-    <Draggable draggableId={song.id} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
-        >
-          <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
-            <Song song={song} className="w-full" />
-            <GripVerticalIcon className="text-muted-foreground cursor-move absolute right-5 h-5" />
-          </div>
-        </div>
-      )}
-    </Draggable>
-  )
-})
-
-DraggableSong.displayName = "DraggableSong"
-
 export function Playlist({
   playlist: originalPlaylist,
   className = ""
@@ -145,6 +53,21 @@ export function Playlist({
   const allowDragging = isSameOwner || (playlist.is_public && playlist.allow_guest_editing)
 
   useEffect(() => {
+    const notifyPlaylistUpdate = () => {
+      if (toast.getToasts().length !== 0) {
+        return
+      }
+
+      toast.warning("Playlist updated by somebody else.", {
+        dismissible: false,
+        action: {
+          label: "Refresh",
+          onClick: () => {
+            window.location.reload()
+          }
+        }
+      })
+    }
     const channel = supabase
       .channel(`playlist:${playlist.id}`)
       .on(
@@ -167,21 +90,7 @@ export function Playlist({
           table: "playlist_songs",
           filter: `playlist_id=eq.${playlist.id}`
         },
-        () => {
-          if (toast.getToasts().length !== 0) {
-            return
-          }
-
-          toast.warning("Playlist updated by somebody else.", {
-            dismissible: false,
-            action: {
-              label: "Refresh",
-              onClick: () => {
-                window.location.reload()
-              }
-            }
-          })
-        }
+        notifyPlaylistUpdate
       )
       .subscribe()
     return () => {
@@ -251,7 +160,9 @@ export function Playlist({
             This playlist is empty. Add songs from the library.
           </p>
         )}
-        {hasSongs && allowDragging && <DraggablePlaylist playlist={playlist} />}
+        {hasSongs && allowDragging && (
+          <DraggablePlaylist playlist={playlist} allowDeletion={isSameOwner} />
+        )}
         {hasSongs && !allowDragging && (
           <div className="space-y-2">
             {playlist.songs
