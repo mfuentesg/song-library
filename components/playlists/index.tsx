@@ -21,6 +21,20 @@ export function Playlists({ playlists: originalPlaylists }: { playlists: Playlis
           )
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "playlists" },
+        async ({ new: createdPlaylist }) => {
+          const { error, data: newPlaylist } = await supabase
+            .from("playlists")
+            .select("*, songs:playlist_songs(position, ...songs(*))")
+            .filter("id", "eq", createdPlaylist.id)
+            .single()
+          if (!error) {
+            setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists])
+          }
+        }
+      )
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
