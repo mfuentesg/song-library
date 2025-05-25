@@ -1,11 +1,9 @@
 "use client"
 
-import { useState, memo } from "react"
+import { memo, useContext } from "react"
 import { EllipsisIcon } from "lucide-react"
-import { toast } from "sonner"
 import { DragDropContext, Droppable, DropResult, Draggable } from "@hello-pangea/dnd"
 
-import { createClient } from "@/lib/supabase/client"
 import { Song } from "@/components/song"
 import {
   DropdownMenu,
@@ -14,15 +12,18 @@ import {
   DropdownMenuItem
 } from "@/components/ui/dropdown-menu"
 import { type SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
+import { UserContext } from "@/context/auth"
 
 const DraggableSong = memo(
   ({
     index,
     song,
+    canBeDeleted = false,
     onDelete
   }: {
     index: number
     song: SongWithPosition
+    canBeDeleted?: boolean
     onDelete?: (songId: string) => Promise<void>
   }) => {
     const onDeleteHandler = () => {
@@ -39,7 +40,7 @@ const DraggableSong = memo(
           >
             <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
               <Song song={song} className="w-full" />
-              {onDelete && (
+              {canBeDeleted && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild className="absolute right-5 top-10">
                     <EllipsisIcon />
@@ -63,22 +64,17 @@ DraggableSong.displayName = "DraggableSong"
 
 export function DraggablePlaylist({
   playlist,
-  allowDeletion = false
+  songs,
+  onPlaylistSort,
+  onDeleteSong
 }: {
   playlist: PlaylistWithSongs
-  allowDeletion?: boolean
+  songs: SongWithPosition[]
+  onPlaylistSort: (s: number, d: number) => Promise<void>
+  onDeleteSong: (songId: string) => Promise<void>
 }) {
-  const supabase = createClient()
-
-  const applyNewPlaylistOrder = async (newSongIds: string[]) => {
-    const newPlaylistOrder = newSongIds.map((songId, index) => ({
-      playlist_id: playlist.id,
-      song_id: songId,
-      position: index + 1
-    }))
-
-    return supabase.from("playlist_songs").upsert(newPlaylistOrder)
-  }
+  const user = useContext(UserContext)
+  const isSameOwner = playlist.user_id === user?.id
 
   const handleDragEnd = async (result: DropResult<string>) => {
     const { destination, source } = result
@@ -91,46 +87,11 @@ export function DraggablePlaylist({
     if (isSamePosition || !isSamePlaylist) {
       return
     }
-    const newSongIds = Array.from(songIds)
-    const [removed] = newSongIds.splice(source.index, 1)
 
-    newSongIds.splice(destination.index, 0, removed)
-    setSongIds(newSongIds)
-    const { error } = await applyNewPlaylistOrder(newSongIds)
-    if (error) {
-      toast.error("Error reordering playlist")
-      return
-    }
-    toast.info("Playlist reordered")
+    onPlaylistSort(source.index, destination.index)
   }
 
-  const deleteSong = (songIdToBeDeleted: string) => async () => {
-    const supabase = createClient()
-    const { error } = await supabase
-      .from("playlist_songs")
-      .delete()
-      .eq("playlist_id", playlist.id)
-      .eq("song_id", songIdToBeDeleted)
-
-    if (error) {
-      toast.error("Error deleting song from playlist")
-      return
-    }
-
-    const newSongIds = songIds.filter((songId) => songId !== songIdToBeDeleted)
-    setSongIds(newSongIds)
-    await applyNewPlaylistOrder(newSongIds)
-    toast.info("Song removed from playlist")
-  }
-
-  const sortedSongIds = playlist.songs
-    .sort((a, b) => a.position - b.position)
-    .map((song) => song.id)
-  const [songIds, setSongIds] = useState(sortedSongIds)
-  const songs = playlist.songs.reduce<{ [key: string]: SongWithPosition }>(
-    (acc, song) => ({ ...acc, [song.id]: song }),
-    {}
-  )
+  const onDeleteSongHandler = (songId: string) => () => onDeleteSong(songId)
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -142,13 +103,14 @@ export function DraggablePlaylist({
               ref={provided.innerRef}
               className={`space-y-2 ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
             >
-              {songIds.map((songId, index) => {
+              {songs.map((song, index) => {
                 return (
-                  <div className="relative" key={songId}>
+                  <div className="relative" key={song.id}>
                     <DraggableSong
-                      song={songs[songId]}
+                      canBeDeleted={isSameOwner}
+                      song={song}
                       index={index}
-                      onDelete={allowDeletion ? deleteSong(songId) : undefined}
+                      onDelete={onDeleteSongHandler(song.id)}
                     />
                   </div>
                 )
