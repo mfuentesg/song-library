@@ -3,18 +3,26 @@
 import Link from "next/link"
 import { useState, useEffect, useContext } from "react"
 import { toast } from "sonner"
-import { GlobeIcon, LockIcon, Share2Icon, SettingsIcon, Trash2Icon } from "lucide-react"
+import {
+  GlobeIcon,
+  LockIcon,
+  Share2Icon,
+  SettingsIcon,
+  Trash2Icon,
+  PlusCircleIcon
+} from "lucide-react"
 
+import { createClient } from "@/lib/supabase/client"
+import { UserContext } from "@/context/auth"
+import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PlaylistConfigDialog } from "@/components/playlist-config-dialog"
 import { Song } from "@/components/song"
-import { SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
-import { createClient } from "@/lib/supabase/client"
-import { UserContext } from "@/context/auth"
-import { DeletePlaylistDialog } from "./playlist-delete-dialog"
-import { DraggablePlaylist } from "./draggable-playlist"
+import { DeletePlaylistDialog } from "@/components/playlist-delete-dialog"
+import { DraggablePlaylist } from "@/components/draggable-playlist"
+import { AdditionalSongs } from "@/components/additional-songs"
 
 function PlaylistBadges({ playlist }: { playlist: PlaylistWithSongs }) {
   return (
@@ -86,40 +94,25 @@ export function Playlist({
     toast.info("Playlist reordered")
   }
 
-  const deleteSong = async (songIdToBeDeleted: string) => {
-    const supabase = createClient()
-    const { error } = await supabase
-      .from("playlist_songs")
-      .delete()
-      .eq("playlist_id", playlist.id)
-      .eq("song_id", songIdToBeDeleted)
-
-    if (error) {
-      toast.error("Error deleting song from playlist")
-      return
-    }
-
-    const newSongIds = songIds.filter((songId) => songId !== songIdToBeDeleted)
-    setSongIds(newSongIds)
-    await applyNewPlaylistOrder(newSongIds)
-    toast.info("Song removed from playlist")
-  }
-
   useEffect(() => {
-    const notifyPlaylistUpdate = () => {
-      if (toast.getToasts().length !== 0) {
+    const notifyPlaylistUpdate = async () => {
+      const { data, error } = await supabase
+        .from("playlists")
+        .select("songs:playlist_songs(position, ...songs(*))")
+        .eq("id", playlist.id)
+        .order("position", { ascending: true, referencedTable: "playlist_songs" })
+        .single()
+
+      if (error) {
+        console.error("Error fetching playlist songs:", error)
         return
       }
 
-      toast.warning("Playlist updated by somebody else.", {
-        dismissible: false,
-        action: {
-          label: "Refresh",
-          onClick: () => {
-            window.location.reload()
-          }
-        }
-      })
+      setPlaylist((prevPlaylist) => ({
+        ...prevPlaylist,
+        songs: data.songs
+      }))
+      setSongIds(data.songs.map((song) => song.id))
     }
 
     const channel = supabase
@@ -140,6 +133,16 @@ export function Playlist({
         "postgres_changes",
         {
           event: "UPDATE",
+          schema: "public",
+          table: "playlist_songs",
+          filter: `playlist_id=eq.${playlist.id}`
+        },
+        notifyPlaylistUpdate
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
           schema: "public",
           table: "playlist_songs",
           filter: `playlist_id=eq.${playlist.id}`
@@ -172,6 +175,8 @@ export function Playlist({
     navigator.clipboard.writeText(shareLink)
     toast.info("The playlist share link has been copied to your clipboard.")
   }
+
+  console.log("Playlist component rendered", playlist, Object.keys(songs).length, songIds.length)
 
   return (
     <div key={playlist.id} className={cn("space-y-2 p-4 rounded-md bg-muted", className)}>
@@ -228,7 +233,6 @@ export function Playlist({
           <DraggablePlaylist
             playlist={playlist}
             songs={mappedSongs}
-            onDeleteSong={deleteSong}
             onPlaylistSort={onPlaylistSort}
           />
         )}
@@ -239,6 +243,15 @@ export function Playlist({
             ))}
           </div>
         )}
+
+        <AdditionalSongs
+          playlist={playlist}
+          trigger={
+            <Button variant="ghost" className="w-full cursor-pointer">
+              <PlusCircleIcon /> Edit songs
+            </Button>
+          }
+        />
       </div>
     </div>
   )

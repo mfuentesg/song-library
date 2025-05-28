@@ -19,9 +19,6 @@ export function SongLibrary({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 items-end">
-        <SongFormDialog />
-      </div>
       <Tabs onValueChange={setActiveTab} value={activeTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="all-songs">All Songs</TabsTrigger>
@@ -34,6 +31,9 @@ export function SongLibrary({
           forceMount
           hidden={activeTab !== "all-songs"}
         >
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <SongFormDialog />
+          </div>
           <SongList songs={songs} />
         </TabsContent>
 

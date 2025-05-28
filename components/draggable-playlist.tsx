@@ -1,81 +1,42 @@
 "use client"
 
-import { memo, useContext } from "react"
-import { EllipsisIcon } from "lucide-react"
+import { memo } from "react"
+import { GripVerticalIcon } from "lucide-react"
 import { DragDropContext, Droppable, DropResult, Draggable } from "@hello-pangea/dnd"
 
 import { Song } from "@/components/song"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem
-} from "@/components/ui/dropdown-menu"
 import { type SongWithPosition, type PlaylistWithSongs } from "@/types/supabase"
-import { UserContext } from "@/context/auth"
 
-const DraggableSong = memo(
-  ({
-    index,
-    song,
-    canBeDeleted = false,
-    onDelete
-  }: {
-    index: number
-    song: SongWithPosition
-    canBeDeleted?: boolean
-    onDelete?: (songId: string) => Promise<void>
-  }) => {
-    const onDeleteHandler = () => {
-      onDelete?.(song.id)
-    }
-
-    return (
-      <Draggable draggableId={song.id} index={index}>
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
-          >
-            <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
-              <Song song={song} className="w-full" />
-              {canBeDeleted && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild className="absolute right-5 top-10">
-                    <EllipsisIcon />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onDeleteHandler}>
-                      Remove from playlist
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+const DraggableSong = memo(({ index, song }: { index: number; song: SongWithPosition }) => {
+  return (
+    <Draggable draggableId={song.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
+        >
+          <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
+            <Song song={song} className="w-full" />
+            <GripVerticalIcon className="absolute top-10 right-5 text-muted-foreground" />
           </div>
-        )}
-      </Draggable>
-    )
-  }
-)
+        </div>
+      )}
+    </Draggable>
+  )
+})
 
 DraggableSong.displayName = "DraggableSong"
 
 export function DraggablePlaylist({
   playlist,
   songs,
-  onPlaylistSort,
-  onDeleteSong
+  onPlaylistSort
 }: {
   playlist: PlaylistWithSongs
   songs: SongWithPosition[]
   onPlaylistSort: (s: number, d: number) => Promise<void>
-  onDeleteSong: (songId: string) => Promise<void>
 }) {
-  const user = useContext(UserContext)
-  const isSameOwner = playlist.user_id === user?.id
-
   const handleDragEnd = async (result: DropResult<string>) => {
     const { destination, source } = result
     if (!destination) {
@@ -91,8 +52,6 @@ export function DraggablePlaylist({
     onPlaylistSort(source.index, destination.index)
   }
 
-  const onDeleteSongHandler = (songId: string) => () => onDeleteSong(songId)
-
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div key={playlist.id} className="space-y-2">
@@ -106,12 +65,7 @@ export function DraggablePlaylist({
               {songs.map((song, index) => {
                 return (
                   <div className="relative" key={song.id}>
-                    <DraggableSong
-                      canBeDeleted={isSameOwner}
-                      song={song}
-                      index={index}
-                      onDelete={onDeleteSongHandler(song.id)}
-                    />
+                    <DraggableSong song={song} index={index} />
                   </div>
                 )
               })}
