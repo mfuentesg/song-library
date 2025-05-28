@@ -154,6 +154,10 @@ export type Database = {
           user_id: string
         }
       }
+      update_playlist_songs: {
+        Args: { p_playlist_id: string; p_song_id: string; p_positions: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

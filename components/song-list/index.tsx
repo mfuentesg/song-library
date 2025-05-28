@@ -124,8 +124,7 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
   const filteredSongs = (songs ?? []).filter(
     (song) =>
       song.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      song.chord.toLowerCase().includes(searchTerm.toLowerCase())
+      song.artist.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
