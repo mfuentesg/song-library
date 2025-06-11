@@ -176,8 +176,6 @@ export function Playlist({
     toast.info("The playlist share link has been copied to your clipboard.")
   }
 
-  console.log("Playlist component rendered", playlist, Object.keys(songs).length, songIds.length)
-
   return (
     <div key={playlist.id} className={cn("space-y-2 p-4 rounded-md bg-muted", className)}>
       <div className="flex items-center justify-between">
@@ -239,7 +237,7 @@ export function Playlist({
         {hasSongs && !allowDragging && (
           <div className="space-y-2">
             {mappedSongs.map((song) => (
-              <Song key={song.id} song={song} />
+              <Song key={song.id} song={song} editable={false} />
             ))}
           </div>
         )}

@@ -17,7 +17,7 @@ const DraggableSong = memo(({ index, song }: { index: number; song: SongWithPosi
           className={`${snapshot.isDragging ? "opacity-70 shadow-lg" : ""}`}
         >
           <div className="flex items-center gap-3 relative" {...provided.dragHandleProps}>
-            <Song song={song} className="w-full" />
+            <Song song={song} className="w-full" editable={false} />
             <GripVerticalIcon className="absolute top-10 right-5 text-muted-foreground" />
           </div>
         </div>

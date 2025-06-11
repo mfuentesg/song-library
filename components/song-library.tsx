@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Playlists } from "@/components/playlists"
 import { SongList } from "@/components/song-list"
-import { SongFormDialog } from "@/components/song-form"
 import { type PlaylistWithSongs } from "@/types/supabase"
 import { type Tables } from "@/types/database"
 
@@ -31,9 +30,6 @@ export function SongLibrary({
           forceMount
           hidden={activeTab !== "all-songs"}
         >
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <SongFormDialog />
-          </div>
           <SongList songs={songs} />
         </TabsContent>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useContext, useState } from "react"
+import React, { useContext, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -25,16 +25,21 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
-import { PlusIcon } from "lucide-react"
+import { Tables } from "@/types/database"
 
-export const SongFormDialog = () => {
+export const SongFormDialog = ({
+  initialValue,
+  title,
+  onSubmit,
+  trigger
+}: {
+  initialValue?: Tables<"songs">
+  title: string
+  onSubmit?: (song: Tables<"songs">) => void
+  trigger: React.ReactNode
+}) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const toggleDialog = () => {
-    if (isAddDialogOpen) {
-      form.reset()
-    }
-    setIsAddDialogOpen((prev) => !prev)
-  }
+  const user = useContext(UserContext)
 
   const formSchema = z.object({
     title: z.string().min(2).max(50),
@@ -42,7 +47,6 @@ export const SongFormDialog = () => {
     chord: z.string().min(1).max(6),
     bpm: z.string().max(3)
   })
-  const user = useContext(UserContext)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,38 +58,56 @@ export const SongFormDialog = () => {
     }
   })
 
-  const handleAddSong = async (values: z.infer<typeof formSchema>) => {
-    const { error } = await createClient()
-      .from("songs")
-      .insert({
+  const toggleDialog = useCallback(() => {
+    setIsAddDialogOpen((prev) => !prev)
+    if (!isAddDialogOpen) {
+      form.reset({
+        title: initialValue?.title ?? "",
+        artist: initialValue?.artist ?? "",
+        chord: initialValue?.chord ?? "A",
+        bpm: initialValue?.bpm?.toString() ?? "120"
+      })
+    }
+  }, [isAddDialogOpen, initialValue, form])
+
+  const handleSubmitSong = useCallback(
+    async (values: z.infer<typeof formSchema>) => {
+      const songData = {
+        id: initialValue?.id,
         title: values.title,
         artist: values.artist,
         chord: values.chord,
         bpm: Number.parseInt(values.bpm, 10),
         user_id: user?.id
-      })
+      }
+      const { data, error } = await createClient()
+        .from("songs")
+        .upsert(songData)
+        .select("*")
+        .single()
 
-    if (error) {
-      return toast.error("Error adding song to library.")
-    }
+      if (error) {
+        return toast.error("Error adding song to library.")
+      }
 
-    toggleDialog()
-    toast.success(`"${values.title}" has been added to your library.`)
-  }
+      toggleDialog()
+      onSubmit?.(data)
+      toast.success(
+        `"${values.title}" has been ${songData.id ? "updated" : "created"} successfully.`
+      )
+    },
+    [initialValue?.id, user?.id, toggleDialog, onSubmit]
+  )
 
   return (
     <Dialog open={isAddDialogOpen} onOpenChange={toggleDialog}>
-      <DialogTrigger asChild>
-        <Button className="whitespace-nowrap">
-          <PlusIcon className="mr-2 h-4 w-4" /> Add Song
-        </Button>
-      </DialogTrigger>
-      <DialogContent aria-describedby="create a new song">
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent aria-describedby={title}>
         <DialogHeader>
-          <DialogTitle>Add New Song</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleAddSong)} className="grid gap-4">
+          <form onSubmit={form.handleSubmit(handleSubmitSong)} className="grid gap-4">
             <FormField
               control={form.control}
               name="title"
@@ -146,7 +168,7 @@ export const SongFormDialog = () => {
               />
             </div>
 
-            <Button type="submit">Add Song</Button>
+            <Button type="submit">Save changes</Button>
           </form>
         </Form>
       </DialogContent>

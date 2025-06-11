@@ -1,111 +1,38 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { SearchIcon, Trash2Icon } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from "@/components/ui/alert-dialog"
+import React, { useState } from "react"
+import { SearchIcon, PlusIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Song } from "@/components/song"
 import { cn } from "@/lib/utils"
 import { type Tables } from "@/types/database"
 import { PlaylistFormDialog } from "@/components/playlist-form"
-import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
-
-const SongDeleteAlert = ({
-  song,
-  open,
-  onOpenChange,
-  onConfirm
-}: {
-  song: Tables<"songs">
-  onConfirm?: (id: string) => Promise<void>
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) => {
-  const onConfirmHandler = () => onConfirm?.(song.id)
-
-  return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete &quot;
-            {song?.title}
-            &quot;.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirmHandler}>Delete</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
-}
+import { SongFormDialog } from "../song-form"
 
 export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) {
   const [songs, setSongs] = useState(initialSongs)
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
-  const [songToDelete, setSongToDelete] = useState<Tables<"songs">>()
-  const [alertVisible, setAlertVisible] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const supabase = createClient()
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("song:updates")
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "songs" },
-        ({ old: deletedSong }) => {
-          setSongs((prevSongs) => (prevSongs ?? []).filter((song) => song.id !== deletedSong.id))
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "songs" },
-        ({ new: newSong }: { new: Tables<"songs"> }) => {
-          setSongs((prevSongs) => (prevSongs ?? []).concat(newSong))
-        }
-      )
-      .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [setSongs, supabase])
-
-  const toggleSongSelection = (songId: string) => () => {
+  const toggleSongSelection = (songId: string, isSelected: boolean) => {
     setSelectedSongs((prev) =>
-      prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]
+      !isSelected ? prev.filter((id) => id !== songId) : [...prev, songId]
     )
   }
 
   const handleDelete = async (songId: string) => {
-    const { error } = await supabase.from("songs").delete().eq("id", songId)
+    setSongs((prevSongs) => (prevSongs ?? []).filter((song) => song.id !== songId))
+  }
 
-    setAlertVisible(false)
-    setSongToDelete(undefined)
+  const handleSongEdition = (song: Tables<"songs">) => {
+    setSongs((prevSongs) => prevSongs.map((s) => (s.id === song.id ? song : s)))
+  }
 
-    if (error) {
-      toast.error("Failed to delete song")
-      return
-    }
-
-    toast.success("Song deleted successfully")
+  const handleSongCreation = (song: Tables<"songs">) => {
+    setSongs((prevSongs) => [song].concat(prevSongs))
   }
 
   const getSongsBySelection = () => {
@@ -116,11 +43,6 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
     setSelectedSongs([])
   }
 
-  const toggleDeletionAlert = (song: Tables<"songs">) => () => {
-    setSongToDelete(song)
-    setAlertVisible(true)
-  }
-
   const filteredSongs = (songs ?? []).filter(
     (song) =>
       song.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,6 +51,18 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
 
   return (
     <React.Fragment>
+      <div className="flex flex-col sm:flex-row gap-4 items-end">
+        <SongFormDialog
+          title="Add New Song"
+          trigger={
+            <Button className="whitespace-nowrap">
+              <PlusIcon className="mr-2 h-4 w-4" /> Add Song
+            </Button>
+          }
+          onSubmit={handleSongCreation}
+        />
+      </div>
+
       <div className="relative w-full">
         <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -142,13 +76,6 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
 
       <h2 className="text-xl font-semibold mt-6">Song Library</h2>
 
-      <SongDeleteAlert
-        song={songToDelete!}
-        open={alertVisible}
-        onOpenChange={setAlertVisible}
-        onConfirm={handleDelete}
-      />
-
       <div className="space-y-3">
         {filteredSongs.map((song) => {
           const isSelected = selectedSongs.includes(song.id)
@@ -156,6 +83,10 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
           return (
             <div className="relative" key={song.id}>
               <Song
+                selectable
+                onSelect={toggleSongSelection}
+                onEdit={handleSongEdition}
+                onDelete={handleDelete}
                 song={song}
                 className={cn({
                   "bg-purple-50": isSelected,
@@ -163,17 +94,6 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
                   "border-purple-200": isSelected
                 })}
               />
-              <Checkbox
-                className="absolute right-4 top-4"
-                checked={isSelected}
-                onCheckedChange={toggleSongSelection(song.id)}
-              />
-
-              <div className="absolute right-2 bottom-2">
-                <Button variant="ghost" onClick={toggleDeletionAlert(song)}>
-                  <Trash2Icon />
-                </Button>
-              </div>
             </div>
           )
         })}
