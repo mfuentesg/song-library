@@ -21,6 +21,7 @@ export function AdditionalSongs({
   playlist: PlaylistWithSongs
   trigger: React.ReactNode
 }) {
+  const [open, setOpen] = useState(false)
   const supabase = createClient()
   const [songIds, setSongIds] = useState(playlist.songs.map((song) => song.id))
   const [songs, setSongs] = useState<Tables<"songs">[]>([])
@@ -47,8 +48,10 @@ export function AdditionalSongs({
       return setSongs(songs)
     }
 
-    fetchSongs()
-  }, [supabase])
+    if (open) {
+      fetchSongs()
+    }
+  }, [open, supabase])
 
   const addSongToPlaylist = (songId: string) => async () => {
     setSongIds((prevSongIds) => prevSongIds.concat(songId))
@@ -103,7 +106,7 @@ export function AdditionalSongs({
   }
 
   return (
-    <Drawer>
+    <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent className="min-h-[90%]">
         <DrawerHeader>
