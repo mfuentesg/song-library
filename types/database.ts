@@ -193,14 +193,17 @@ export type Database = {
       user_profiles: {
         Row: {
           email: string | null
+          full_name: string | null
           id: string | null
         }
         Insert: {
           email?: string | null
+          full_name?: never
           id?: string | null
         }
         Update: {
           email?: string | null
+          full_name?: never
           id?: string | null
         }
         Relationships: []

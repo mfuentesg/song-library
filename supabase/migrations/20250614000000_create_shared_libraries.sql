@@ -5,19 +5,6 @@ create view public.user_profiles as
     users.email
   from auth.users as users;
 
-alter view public.user_profiles owner to authenticated;
-
--- Enable row level security
-alter view public.user_profiles enable row level security;
-
--- Create policy to only show user profiles to authenticated users
-create policy "Allow authenticated users to view user profiles"
-  on public.user_profiles
-  for select
-  to authenticated
-  using (true);
-
--- Create shared libraries table
 create table public.shared_libraries (
   id uuid default gen_random_uuid() primary key,
   owner_id uuid references auth.users(id) on delete cascade not null,
@@ -43,10 +30,10 @@ create policy "Users can share their own libraries"
   on public.shared_libraries
   for insert
   to authenticated
-  using (auth.uid() = owner_id);
+  with check ((select auth.uid() as user_id) = owner_id);
 
 create policy "Users can remove their shared libraries"
   on public.shared_libraries
   for delete
   to authenticated
-  using (auth.uid() = owner_id);
+  using ((select auth.uid() as user_id) = owner_id);
