@@ -1,14 +1,15 @@
 "use client"
 
 import React, { useState } from "react"
-import { SearchIcon, PlusIcon } from "lucide-react"
+import { SearchIcon, PlusIcon, Share2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { ShareLibraryDialog } from "@/components/share-library"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Song } from "@/components/song"
 import { cn } from "@/lib/utils"
-import { type Tables } from "@/types/database"
+import { Tables } from "@/types/supabase"
 import { PlaylistFormDialog } from "@/components/playlist-form"
 import { SongFormDialog } from "../song-form"
 
@@ -51,11 +52,19 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
 
   return (
     <React.Fragment>
-      <div className="flex flex-col sm:flex-row gap-4 items-end">
+      <div className="flex gap-2 justify-end">
+        <ShareLibraryDialog
+          trigger={
+            <Button variant="outline" size="sm">
+              <Share2Icon className="mr-2 h-4 w-4" />
+              Share library
+            </Button>
+          }
+        />
         <SongFormDialog
           title="Add New Song"
           trigger={
-            <Button className="whitespace-nowrap">
+            <Button size="sm">
               <PlusIcon className="mr-2 h-4 w-4" /> Add Song
             </Button>
           }
