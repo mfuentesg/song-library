@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import { SearchIcon, PlusIcon, Share2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -12,11 +12,13 @@ import { cn } from "@/lib/utils"
 import { Tables } from "@/types/supabase"
 import { PlaylistFormDialog } from "@/components/playlist-form"
 import { SongFormDialog } from "../song-form"
+import { UserContext } from "@/context/auth"
 
 export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) {
   const [songs, setSongs] = useState(initialSongs)
   const [selectedSongs, setSelectedSongs] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const user = useContext(UserContext)
 
   const toggleSongSelection = (songId: string, isSelected: boolean) => {
     setSelectedSongs((prev) =>
@@ -93,6 +95,7 @@ export function SongList({ songs: initialSongs }: { songs: Tables<"songs">[] }) 
             <div className="relative" key={song.id}>
               <Song
                 selectable
+                editable={song.user_id === user?.id}
                 onSelect={toggleSongSelection}
                 onEdit={handleSongEdition}
                 onDelete={handleDelete}
