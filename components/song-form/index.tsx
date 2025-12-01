@@ -44,8 +44,9 @@ export const SongFormDialog = ({
   const formSchema = z.object({
     title: z.string().min(2).max(50),
     artist: z.string().min(2).max(50),
-    chord: z.string().min(1).max(6),
-    bpm: z.string().max(3)
+    key: z.string().min(1).max(6),
+    bpm: z.string().max(3),
+    content: z.string().optional()
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,8 +54,9 @@ export const SongFormDialog = ({
     defaultValues: {
       title: "",
       artist: "",
-      chord: "A",
-      bpm: "120"
+      key: "A",
+      bpm: "120",
+      content: ""
     }
   })
 
@@ -64,8 +66,9 @@ export const SongFormDialog = ({
       form.reset({
         title: initialValue?.title ?? "",
         artist: initialValue?.artist ?? "",
-        chord: initialValue?.chord ?? "A",
-        bpm: initialValue?.bpm?.toString() ?? "120"
+        key: initialValue?.key ?? "A",
+        bpm: initialValue?.bpm?.toString() ?? "120",
+        content: initialValue?.content ?? ""
       })
     }
   }, [isAddDialogOpen, initialValue, form])
@@ -76,8 +79,9 @@ export const SongFormDialog = ({
         id: initialValue?.id,
         title: values.title,
         artist: values.artist,
-        chord: values.chord,
+        key: values.key,
         bpm: Number.parseInt(values.bpm, 10),
+        content: values.content || null,
         user_id: user?.id
       }
       const { data, error } = await createClient()
@@ -138,10 +142,10 @@ export const SongFormDialog = ({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="chord"
+                name="key"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Primary Chord</FormLabel>
+                    <FormLabel>Key</FormLabel>
                     <FormControl>
                       <ChordSelect
                         className="w-full"
@@ -167,6 +171,24 @@ export const SongFormDialog = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lyrics (ChordPro format)</FormLabel>
+                  <FormControl>
+                    <textarea
+                      className="w-full h-40 p-2 border rounded-md font-mono text-sm"
+                      placeholder="Enter lyrics with chords in [brackets], e.g., [G]Amazing [D]grace..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Button type="submit">Save changes</Button>
           </form>
