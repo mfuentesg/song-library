@@ -3,26 +3,41 @@
 import React from "react"
 import { ChordProParser } from "chordsheetjs"
 
-// List of musical keys for transposition
-const KEYS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+// List of musical keys for transposition (using sharps)
+const SHARP_KEYS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+// List of musical keys for transposition (using flats)
 const FLAT_KEYS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+
+/**
+ * Extract the root note from a key/chord (e.g., "Am" -> "A", "Dbm" -> "Db")
+ */
+function extractRoot(key: string): string {
+  const match = key.match(/^([A-G][#b]?)/)
+  return match ? match[1] : key
+}
+
+/**
+ * Check if a key uses flats
+ */
+function usesFlats(key: string): boolean {
+  return key.includes("b") && !key.startsWith("B")
+}
 
 /**
  * Get the semitone offset between two keys
  */
 function getKeyOffset(fromKey: string, toKey: string): number {
-  const normalizeKey = (key: string): number => {
-    const normalized = key.replace("m", "").replace("b", "")
-    const isFlat = key.includes("b")
-    const keyList = isFlat ? FLAT_KEYS : KEYS
+  const getKeyIndex = (key: string): number => {
+    const root = extractRoot(key)
+    const keyList = usesFlats(root) ? FLAT_KEYS : SHARP_KEYS
     const index = keyList.findIndex(
-      (k) => k.toLowerCase() === normalized.toLowerCase()
+      (k) => k.toLowerCase() === root.toLowerCase()
     )
     return index >= 0 ? index : 0
   }
 
-  const fromIndex = normalizeKey(fromKey)
-  const toIndex = normalizeKey(toKey)
+  const fromIndex = getKeyIndex(fromKey)
+  const toIndex = getKeyIndex(toKey)
   return (toIndex - fromIndex + 12) % 12
 }
 
@@ -32,13 +47,12 @@ function getKeyOffset(fromKey: string, toKey: string): number {
 function transposeChord(chord: string, semitones: number): string {
   if (semitones === 0) return chord
   
-  // Match chord root and suffix
+  // Match chord root and suffix (e.g., "Am7" -> root="A", suffix="m7")
   const match = chord.match(/^([A-G][#b]?)(.*)$/)
   if (!match) return chord
 
   const [, root, suffix] = match
-  const isFlat = root.includes("b")
-  const keyList = isFlat ? FLAT_KEYS : KEYS
+  const keyList = usesFlats(root) ? FLAT_KEYS : SHARP_KEYS
   const currentIndex = keyList.findIndex(
     (k) => k.toLowerCase() === root.toLowerCase()
   )

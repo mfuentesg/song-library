@@ -1,1 +1,4 @@
+# Note: gen-types and db lint removed - these require supabase start to be running
+# To regenerate types locally: npm run gen-types (requires supabase start)
+# To lint database: npx supabase db lint (requires supabase start)
 npm run lint
